@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>NOS_ALPHA_ARCHITECT</title>
+    <style>
+        /* The Vault Environment */
+        body {
+            background-color: #000000;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            font-family: monospace;
+        }
+
+        /* The 2-Second Somatic Fade-In */
+        .monolith-container {
+            opacity: 0;
+            animation: fadeIn 2s ease-in forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* The Perfect Cross Geometry */
+        .monolith-svg {
+            width: 80vw;
+            max-width: 400px;
+        }
+
+        .segment {
+            stroke: #ffffff;
+            stroke-width: 4;
+            fill: none;
+            transition: all 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="monolith-container">
+        <svg viewBox="0 0 100 100" class="monolith-svg">
+            <line x1="50" y1="10" x2="50" y2="90" class="segment" id="pillar" />
+            <line x1="10" y1="40" x2="90" y2="40" class="segment" id="crossbar" />
+        </svg>
+    </div>
+
+</body>
+</html>
