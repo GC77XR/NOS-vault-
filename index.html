@@ -53,3 +53,44 @@
 
 </body>
 </html>
+   let score = 0;
+    const segments = ['p1', 'p2', 'p3', 'p4', 'c1', 'c2', 'c3', 'c4'];
+    const body = document.getElementById('vault-body');
+
+    // Logic for Vertical Symmetry ⚖️
+    const mirrorMap = {
+        'p1': 'p4', 'p4': 'p1', // Top mirrors Bottom
+        'p2': 'p3', 'p3': 'p2', // Middle-top mirrors Middle-bottom
+        'c1': 'c4', 'c4': 'c1', // Far-left mirrors Far-right
+        'c2': 'c3', 'c3': 'c2' // Inner-left mirrors Inner-right
+    };
+
+    function startChallenge() {
+        const randomId = segments[Math.floor(Math.random() * segments.length)];
+        const target = document.getElementById(randomId);
+        target.style.stroke = '#555'; // Highlight the challenge segment in Grey
+        
+        target.onclick = null; // Disable clicking the target itself
+        
+        // Listen for the Mirror Tap
+        const mirrorId = mirrorMap[randomId];
+        document.getElementById(mirrorId).onclick = function() {
+            this.classList.add('success-glow'); // Trigger Gold Light Burst ✨
+            score++;
+            
+            setTimeout(() => {
+                this.classList.remove('success-glow');
+                target.style.stroke = '#ffffff'; // Reset target
+                if (score < 3) {
+                    startChallenge(); // Next match
+                } else {
+                    alert("PROTOCOL COMPLETE: ARCHITECT VERIFIED 📐");
+                    score = 0; // Reset for next session
+                }
+            }, 600);
+        };
+    }
+
+    // Start after the 2-second Fade-In
+    setTimeout(startChallenge, 2500);
+</script>
