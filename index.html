@@ -3,15 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NOS_VAULT_ROBUST</title>
+    <title>NOS_VAULT_ROBUST_V3</title>
     <style>
-        body { background-color: #000000; margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; touch-action: none; transition: background-color 0.2s ease; }
+        /* The base "Stage" */
+        body { 
+            background-color: #000000; 
+            margin: 0; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            width: 100vw;
+            overflow: hidden; 
+            touch-action: none; 
+            transition: background-color 0.15s ease;
+        }
         .monolith-container { opacity: 0; animation: fadeIn 2s ease-in forwards; }
         @keyframes fadeIn { to { opacity: 1; } }
-        .monolith-svg { width: 70vw; max-width: 350px; }
-        .segment { stroke: #ffffff; stroke-width: 6; fill: none; cursor: pointer; transition: stroke 0.2s ease; -webkit-tap-highlight-color: transparent; }
-        .success-glow { stroke: #FFD700 !important; filter: drop-shadow(0 0 8px #FFD700); }
-        .error-flash { background-color: #7a0000 !important; }
+        .monolith-svg { width: 75vw; max-width: 400px; }
+        .segment { stroke: #ffffff; stroke-width: 6; fill: none; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+        .success-glow { stroke: #FFD700 !important; filter: drop-shadow(0 0 10px #FFD700); }
+        /* The Red Flash State */
+        .error-flash { background-color: #990000 !important; }
     </style>
 </head>
 <body id="vault-body">
@@ -33,20 +46,31 @@
         let score = 0;
         const segments = ['p1', 'p2', 'p3', 'p4', 'c1', 'c2', 'c3', 'c4'];
         const mirrorMap = { 'p1': 'p4', 'p4': 'p1', 'p2': 'p3', 'p3': 'p2', 'c1': 'c4', 'c4': 'c1', 'c2': 'c3', 'c3': 'c2' };
-        let currentTarget = null;
         let currentMirror = null;
+        let canInteract = false;
+
+        // 1. The "Fail" Trigger (Background)
+        document.body.addEventListener('pointerdown', (e) => {
+            if (!canInteract) return;
+            // If the thing we touched isn't a segment, it's a fail
+            if (!e.target.classList.contains('segment')) {
+                handleFailure();
+            }
+        });
 
         function startChallenge() {
+            canInteract = true;
             const randomId = segments[Math.floor(Math.random() * segments.length)];
-            currentTarget = document.getElementById(randomId);
+            const target = document.getElementById(randomId);
             currentMirror = mirrorMap[randomId];
-            currentTarget.style.stroke = '#555555'; 
-            
+            target.style.stroke = '#555555'; 
+
             segments.forEach(id => {
-                document.getElementById(id).onclick = function(e) {
-                    e.stopPropagation();
+                const el = document.getElementById(id);
+                el.onpointerdown = function(e) {
+                    e.stopPropagation(); // Stop the background from "hearing" this
                     if (this.id === currentMirror) {
-                        handleSuccess(this);
+                        handleSuccess(this, target);
                     } else {
                         handleFailure();
                     }
@@ -54,25 +78,33 @@
             });
         }
 
-        function handleSuccess(element) {
+        function handleSuccess(element, target) {
+            canInteract = false;
             element.classList.add('success-glow');
             score++;
             setTimeout(() => {
                 element.classList.remove('success-glow');
-                currentTarget.style.stroke = '#ffffff';
+                target.style.stroke = '#ffffff';
                 if (score < 3) startChallenge();
-                else { alert("PROTOCOL COMPLETE: ARCHITECT VERIFIED 📐"); score = 0; startChallenge(); }
+                else { 
+                    alert("PROTOCOL COMPLETE: ARCHITECT VERIFIED 📐"); 
+                    score = 0; 
+                    startChallenge(); 
+                }
             }, 600);
         }
 
         function handleFailure() {
+            if (!canInteract) return;
+            canInteract = false;
             document.body.classList.add('error-flash');
-            score = 0; // Reset progress
+            score = 0;
             setTimeout(() => {
                 document.body.classList.remove('error-flash');
-                currentTarget.style.stroke = '#ffffff';
-                startChallenge(); // Restart current sequence
-            }, 300);
+                // Reset colors and restart
+                segments.forEach(id => document.getElementById(id).style.stroke = '#ffffff');
+                startChallenge();
+            }, 400);
         }
 
         setTimeout(startChallenge, 2500);
