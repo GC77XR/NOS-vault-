@@ -3,139 +3,105 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SATA-CODA Protocol</title>
+    <title>NOS Vault | SATA-CODA</title>
     <style>
-        body { margin: 0; background: #000; overflow: hidden; font-family: sans-serif; }
+        body { margin: 0; background: #000; color: #fff; overflow: hidden; font-family: 'Courier New', Courier, monospace; }
+        
+        #vault-ui {
+            position: absolute; top: 20px; width: 100%; text-align: center;
+            letter-spacing: 2px; z-index: 5; pointer-events: none;
+        }
+        
+        #core-container {
+            position: absolute; width: 100vw; height: 100vh;
+            display: flex; justify-content: center; align-items: center;
+            perspective: 1000px; /* Enables 3D space */
+        }
 
-        /* The main interaction node */
         #core-node {
-            position: absolute;
-            top: 50%; left: 50%;
-            width: 140px; height: 140px;
-            background: #fff;
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 10;
-            cursor: pointer;
-            transition: opacity 0.3s ease;
+            width: 140px; height: 140px; background: #fff; border-radius: 50%;
+            cursor: pointer; transition: transform 0.2s, opacity 0.3s;
+            box-shadow: 0 0 20px rgba(255,255,255,0.2);
+            touch-action: none; /* Prevents scrolling during hold */
         }
 
-        /* Container for the 4x4 Tactical Grid */
-        #grid-container {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100vw; height: 100vh;
-            pointer-events: none;
-        }
-
-        /* Individual Shards/Anchors */
         .shard {
-            position: absolute;
-            width: 20px; height: 20px;
-            background: #fff;
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-            transition: left 600ms cubic-bezier(0.25, 0.1, 0.25, 1), 
-                        top 600ms cubic-bezier(0.25, 0.1, 0.25, 1),
-                        background 200ms ease,
-                        box-shadow 200ms ease;
+            position: absolute; width: 20px; height: 20px; background: #fff; border-radius: 50%;
+            transform-style: preserve-3d;
+            transition: all 600ms cubic-bezier(0.165, 0.84, 0.44, 1);
         }
 
-        /* The "Locked" Entrepreneur State */
         .shard.locked {
-            background: #00FFFF; /* Entrepreneur Cyan */
-            box-shadow: 0 0 15px #00FFFF;
+            background: #00FFFF;
+            box-shadow: 0 0 20px #00FFFF;
         }
     </style>
 </head>
 <body>
 
-    <div id="core-node"></div>
-    <div id="grid-container"></div>
+    <div id="vault-ui">
+        <h2>NOS VAULT</h2>
+        <p>DJ GC77XR // MICRO HAUS NOS</p>
+    </div>
+
+    <div id="core-container">
+        <div id="core-node"></div>
+    </div>
 
     <script>
         const coreNode = document.getElementById('core-node');
-        const gridContainer = document.getElementById('grid-container');
-        
-        let audioCtx;
-        let gongBuffer;
+        const container = document.getElementById('core-container');
+        let audioCtx, gongBuffer, holdTimer;
 
-        // --- 1. Audio Engine ---
-        async function preloadGong() {
+        async function initAudio() {
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             if (audioCtx.state === 'suspended') await audioCtx.resume();
-
             try {
-                const response = await fetch('gong.mp3');
-                const arrayBuffer = await response.arrayBuffer();
-                gongBuffer = await audioCtx.decodeAudioData(arrayBuffer);
-            } catch (err) {
-                console.error("Gong load failed. Ensure gong.mp3 is in the folder.", err);
-            }
+                const res = await fetch('gong.mp3');
+                const buf = await res.arrayBuffer();
+                gongBuffer = await audioCtx.decodeAudioData(buf);
+            } catch (e) { console.error("Gong file missing."); }
         }
 
         function playGong() {
             if (!gongBuffer) return;
-            const source = audioCtx.createBufferSource();
-            source.buffer = gongBuffer;
-            source.connect(audioCtx.destination);
-            source.start(0);
+            const src = audioCtx.createBufferSource();
+            src.buffer = gongBuffer;
+            src.connect(audioCtx.destination);
+            src.start(0);
         }
 
-        // --- 2. The Shatter Sequence ---
         function triggerShatter() {
             coreNode.style.opacity = '0';
-            
-            const shards = [];
+            playGong();
+
             for (let i = 0; i < 16; i++) {
                 const shard = document.createElement('div');
                 shard.className = 'shard';
-                
-                // Start at center
-                shard.style.left = '50%';
-                shard.style.top = '50%';
-                
-                gridContainer.appendChild(shard);
-                shards.push(shard);
+                container.appendChild(shard);
 
-                // Math: 4x4 Grid coordinates
-                const row = Math.floor(i / 4);
-                const col = i % 4;
-                const targetX = (col * 25) + 12.5;
-                const targetY = (row * 25) + 12.5;
+                // Grid Math
+                const row = Math.floor(i / 4), col = i % 4;
+                const tx = (col - 1.5) * 80, ty = (row - 1.5) * 80;
 
-                // Trigger flight with slight delay for DOM
                 setTimeout(() => {
-                    shard.style.left = targetX + '%';
-                    shard.style.top = targetY + '%';
+                    // Fly toward user (translateZ) and to grid position
+                    shard.style.transform = `translate3d(${tx}px, ${ty}px, 500px)`;
+                    shard.classList.add('locked');
                 }, 10);
             }
-
-            // --- 3. Impact Sync ---
-            setTimeout(() => {
-                playGong(); // Audio strike
-                shards.forEach(s => s.classList.add('locked')); // Visual color shift
-                console.log("Ignite Phase Active (140 BPM pulse would start here)");
-            }, 600);
         }
 
-        // --- 4. Event Listeners ---
-        let holdTimer;
-        coreNode.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            preloadGong(); // Preload during the hold
-            
-            holdTimer = setTimeout(() => {
-                triggerShatter();
-            }, 5000); // 5-second Vanguard Hold
+        // Pointer Events for Cross-Device Support
+        coreNode.addEventListener('pointerdown', (e) => {
+            initAudio();
+            coreNode.style.transform = 'scale(0.95)';
+            holdTimer = setTimeout(triggerShatter, 5000); // 5s Vanguard Hold
         });
 
-        coreNode.addEventListener('touchend', () => {
+        coreNode.addEventListener('pointerup', () => {
             clearTimeout(holdTimer);
-            if (coreNode.style.opacity !== '0') {
-                // Reset if they let go early
-                console.log("Hold broken. Resetting...");
-            }
+            coreNode.style.transform = 'scale(1)';
         });
     </script>
 </body>
