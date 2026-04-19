@@ -5,59 +5,117 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>NOS_ALPHA_ARCHITECT</title>
     <style>
-        /* The Vault Environment */
         body {
             background-color: #000000;
             margin: 0;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             height: 100vh;
             overflow: hidden;
             font-family: monospace;
+            color: #ffffff;
+            user-select: none; /* Prevents text highlighting */
         }
 
-        /* The 2-Second Somatic Fade-In */
-        .monolith-container {
-            opacity: 0;
-            animation: fadeIn 2s ease-in forwards;
+        /* The Central Node / Logo Placeholder */
+        #core-node {
+            width: 120px;
+            height: 120px;
+            border: 4px solid #ffffff;
+            border-radius: 50%; /* A smooth circle for the hold */
+            margin-bottom: 40px;
+            transition: background-color 0.1s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+        /* The Golden Transmutation Animation */
+        .holding {
+            background-color: #FFD700; /* Gold */
+            transition: background-color 3s ease-in-out !important; 
         }
 
-        /* The Perfect Cross Geometry */
-        .monolith-svg {
-            width: 80vw;
-            max-width: 400px;
-        }
-
-        .segment {
-            stroke: #ffffff;
-            stroke-width: 4;
-            fill: none;
-            transition: all 0.3s ease;
+        /* The Text Command */
+        #instruction-text {
+            font-size: 16px;
+            letter-spacing: 2px;
+            text-align: center;
+            opacity: 0.8;
         }
     </style>
 </head>
 <body>
 
-    <div class="monolith-container">
-        <svg viewBox="0 0 100 100" class="monolith-svg">
-            <line x1="50" y1="10" x2="50" y2="30" class="segment" id="pillar-1" />
-            <line x1="50" y1="30" x2="50" y2="50" class="segment" id="pillar-2" />
-            <line x1="50" y1="50" x2="50" y2="70" class="segment" id="pillar-3" />
-            <line x1="50" y1="70" x2="50" y2="90" class="segment" id="pillar-4" />
-            
-            <line x1="10" y1="50" x2="30" y2="50" class="segment" id="crossbar-1" />
-            <line x1="30" y1="50" x2="50" y2="50" class="segment" id="crossbar-2" />
-            <line x1="50" y1="50" x2="70" y2="50" class="segment" id="crossbar-3" />
-            <line x1="70" y1="50" x2="90" y2="50" class="segment" id="crossbar-4" />
-        </svg>
-    </div>
+    <div id="core-node"></div>
+    <div id="instruction-text">HOLD YOUR FINGER FOR 3 SECONDS</div>
 
-    <script src="script.js"></script>
+    <script>
+        const coreNode = document.getElementById('core-node');
+        const instructionText = document.getElementById('instruction-text');
+        
+        let holdTimer;
+        let audioCtx;
+        let isUnified = false; // Tracks if the 3 seconds are complete
+
+        // The 118 BPM Audio Function
+        function initiateSataCodaPulse() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            const oscillator = audioCtx.createOscillator();
+            oscillator.type = 'sine'; 
+            oscillator.frequency.setValueAtTime(55, audioCtx.currentTime);
+
+            const gainNode = audioCtx.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            oscillator.start();
+
+            const beatIntervalMs = (60 / 118) * 1000; 
+            
+            setInterval(() => {
+                gainNode.gain.setValueAtTime(1, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.1, audioCtx.currentTime + 0.2);
+            }, beatIntervalMs);
+        }
+
+        // Event: Finger touches the screen
+        coreNode.addEventListener('touchstart', function(e) {
+            e.preventDefault(); // Stops the screen from scrolling
+            
+            if (isUnified) return; // Do nothing if already unlocked
+
+            // 1. Start the Golden 🌕 visual fill
+            coreNode.classList.add('holding');
+            
+            // 2. Start the 3-second timer
+            holdTimer = setTimeout(() => {
+                isUnified = true;
+                initiateSataCodaPulse(); // Trigger the audio
+                instructionText.innerText = "UNIFIED STATE ACHIEVED";
+                instructionText.style.color = "#FFD700"; // Turn text gold
+            }, 3000); 
+        }, { passive: false });
+
+        // Event: Finger lifts off the screen early
+        coreNode.addEventListener('touchend', function(e) {
+            e.preventDefault();
+            
+            if (isUnified) return; // Ignore if they already succeeded
+
+            // 1. Cancel the timer
+            clearTimeout(holdTimer);
+            
+            // 2. Snap the color back to empty/white
+            coreNode.classList.remove('holding');
+        }, { passive: false });
+    </script>
 </body>
 </html>
