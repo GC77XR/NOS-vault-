@@ -1,8 +1,16 @@
 let audioCtx;
 
+// 1. System Boot Confirmation
+alert("NOS ALPHA: System Online. Awaiting Handshake.");
+
 function initiateSataCodaPulse() {
     if (!audioCtx) {
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+
+    // Force mobile browsers to wake up the audio engine
+    if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
     }
 
     const oscillator = audioCtx.createOscillator();
@@ -24,6 +32,10 @@ function initiateSataCodaPulse() {
     }, beatIntervalMs);
 }
 
-document.body.addEventListener('touchstart', function() {
-    initiateSataCodaPulse();
-}, { once: true });
+// 2. The Handshake Listener (Upgraded for all touch types)
+['click', 'touchstart'].forEach(eventType => {
+    document.body.addEventListener(eventType, function() {
+        alert("Handshake Detected 🤝. Initiating 118 BPM Pulse.");
+        initiateSataCodaPulse();
+    }, { once: true });
+});
