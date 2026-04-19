@@ -3,8 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NOS_ALPHA_ARCHITECT</title>
+    <title>NOS_VESSEL_PROTOCOL</title>
     <style>
+        :root {
+            --vanguard: #4B0082;
+            --entrepreneur: #00FFFF;
+            --alchemist: #FFD700;
+            --active-glow: #ffffff;
+        }
+
         body {
             background-color: #000000;
             margin: 0;
@@ -13,109 +20,136 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
-            overflow: hidden;
             font-family: monospace;
             color: #ffffff;
-            user-select: none; /* Prevents text highlighting */
+            user-select: none;
+            overflow: hidden;
         }
 
-        /* The Central Node / Logo Placeholder */
+        #tactical-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 50px;
+        }
+
+        .protocol-btn {
+            background: none;
+            border: 1px solid #ffffff;
+            color: #ffffff;
+            padding: 12px;
+            font-size: 10px;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        /* The Selection Glow 🌟 */
+        .protocol-btn.active {
+            background: #ffffff;
+            color: #000000;
+            box-shadow: 0 0 15px var(--active-glow), 0 0 30px var(--active-glow);
+        }
+
         #core-node {
-            width: 120px;
-            height: 120px;
-            border: 4px solid #ffffff;
-            border-radius: 50%; /* A smooth circle for the hold */
-            margin-bottom: 40px;
-            transition: background-color 0.1s;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            width: 140px;
+            height: 140px;
+            border: 2px solid #ffffff;
+            border-radius: 50%;
+            transition: background-color 5s linear;
         }
 
-        /* The Golden Transmutation Animation */
-        .holding {
-            background-color: #FFD700; /* Gold */
-            transition: background-color 3s ease-in-out !important; 
+        #core-node.holding {
+            background-color: var(--active-glow);
         }
 
-        /* The Text Command */
         #instruction-text {
-            font-size: 16px;
-            letter-spacing: 2px;
+            margin-top: 30px;
+            font-size: 12px;
             text-align: center;
-            opacity: 0.8;
+            max-width: 280px;
+            line-height: 1.6;
+            text-transform: uppercase;
         }
     </style>
 </head>
 <body>
 
+    <div id="tactical-grid">
+        <button class="protocol-btn" id="btn-vanguard" onclick="setProtocol('vanguard')">VANGUARD</button>
+        <button class="protocol-btn" id="btn-entrepreneur" onclick="setProtocol('entrepreneur')">ENTREPRENEUR</button>
+        <button class="protocol-btn" id="btn-alchemist" onclick="setProtocol('alchemist')">ALCHEMIST</button>
+    </div>
+
     <div id="core-node"></div>
-    <div id="instruction-text">HOLD YOUR FINGER FOR 3 SECONDS</div>
+    <div id="instruction-text">INITIALIZE SYSTEM</div>
 
     <script>
-        const coreNode = document.getElementById('core-node');
-        const instructionText = document.getElementById('instruction-text');
-        
-        let holdTimer;
-        let audioCtx;
-        let isUnified = false; // Tracks if the 3 seconds are complete
+        const protocols = {
+            vanguard: { color: '#4B0082', bpm: 45, type: 'sine', cmd: 'OWN THE WEIGHT.<br>RIGHT HAND GRIP. LEFT HAND COVER.' },
+            entrepreneur: { color: '#00FFFF', bpm: 140, type: 'square', cmd: 'CUT THE STATIC.<br>RIGHT HAND GRIP. LEFT HAND COVER.' },
+            alchemist: { color: '#FFD700', bpm: 118, type: 'triangle', cmd: 'UNIFIED STATE.<br>RIGHT HAND GRIP. LEFT HAND COVER.' }
+        };
 
-        // The 118 BPM Audio Function
-        function initiateSataCodaPulse() {
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            }
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
+        let current = null;
+        let holdTimer, audioCtx, pulseInterval;
+        let isActive = false;
 
-            const oscillator = audioCtx.createOscillator();
-            oscillator.type = 'sine'; 
-            oscillator.frequency.setValueAtTime(55, audioCtx.currentTime);
-
-            const gainNode = audioCtx.createGain();
-            oscillator.connect(gainNode);
-            gainNode.connect(audioCtx.destination);
-            oscillator.start();
-
-            const beatIntervalMs = (60 / 118) * 1000; 
-            
-            setInterval(() => {
-                gainNode.gain.setValueAtTime(1, audioCtx.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.1, audioCtx.currentTime + 0.2);
-            }, beatIntervalMs);
+        function setProtocol(id) {
+            current = protocols[id];
+            document.querySelectorAll('.protocol-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('btn-' + id).classList.add('active');
+            document.documentElement.style.setProperty('--active-glow', current.color);
+            document.getElementById('instruction-text').innerHTML = current.cmd;
+            stopAll();
         }
 
-        // Event: Finger touches the screen
-        coreNode.addEventListener('touchstart', function(e) {
-            e.preventDefault(); // Stops the screen from scrolling
-            
-            if (isUnified) return; // Do nothing if already unlocked
+        function playPulse() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
 
-            // 1. Start the Golden 🌕 visual fill
-            coreNode.classList.add('holding');
-            
-            // 2. Start the 3-second timer
-            holdTimer = setTimeout(() => {
-                isUnified = true;
-                initiateSataCodaPulse(); // Trigger the audio
-                instructionText.innerText = "UNIFIED STATE ACHIEVED";
-                instructionText.style.color = "#FFD700"; // Turn text gold
-            }, 3000); 
-        }, { passive: false });
+            const ms = (60 / current.bpm) * 1000;
+            pulseInterval = setInterval(() => {
+                const osc = audioCtx.createOscillator();
+                const g = audioCtx.createGain();
+                osc.type = current.type;
+                osc.frequency.setValueAtTime(id === 'vanguard' ? 55 : 220, audioCtx.currentTime);
+                g.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
+                osc.connect(g).connect(audioCtx.destination);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.5);
+            }, ms);
+        }
 
-        // Event: Finger lifts off the screen early
-        coreNode.addEventListener('touchend', function(e) {
-            e.preventDefault();
-            
-            if (isUnified) return; // Ignore if they already succeeded
-
-            // 1. Cancel the timer
+        function stopAll() {
+            clearInterval(pulseInterval);
+            isActive = false;
+            document.getElementById('core-node').classList.remove('holding');
             clearTimeout(holdTimer);
-            
-            // 2. Snap the color back to empty/white
-            coreNode.classList.remove('holding');
-        }, { passive: false });
+        }
+
+        document.getElementById('core-node').addEventListener('touchstart', (e) => {
+            if (!current || isActive) return;
+            e.preventDefault();
+            e.target.classList.add('holding');
+            holdTimer = setTimeout(() => {
+                isActive = true;
+                playPulse();
+                document.getElementById('instruction-text').innerHTML = "CALIBRATION ACTIVE";
+            }, 5000);
+        });
+
+        document.getElementById('core-node').addEventListener('touchend', () => { if (!isActive) stopAll(); });
+
+        let last = 0;
+        document.body.addEventListener('touchend', () => {
+            const now = Date.now();
+            if (now - last < 500 && isActive) {
+                document.getElementById('instruction-text').innerHTML = "CALIBRATION COMPLETE.<br>OPEN YOUR HANDS.";
+                stopAll();
+            }
+            last = now;
+        });
     </script>
 </body>
 </html>
