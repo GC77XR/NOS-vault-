@@ -3,111 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NOS_VAULT_ROBUST_V3</title>
+    <title>NOS_ALPHA_ARCHITECT</title>
     <style>
-        /* The base "Stage" */
-        body { 
-            background-color: #000000; 
-            margin: 0; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            height: 100vh; 
-            width: 100vw;
-            overflow: hidden; 
-            touch-action: none; 
-            transition: background-color 0.15s ease;
+        /* The Vault Environment */
+        body {
+            background-color: #000000;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            font-family: monospace;
         }
-        .monolith-container { opacity: 0; animation: fadeIn 2s ease-in forwards; }
-        @keyframes fadeIn { to { opacity: 1; } }
-        .monolith-svg { width: 75vw; max-width: 400px; }
-        .segment { stroke: #ffffff; stroke-width: 6; fill: none; cursor: pointer; -webkit-tap-highlight-color: transparent; }
-        .success-glow { stroke: #FFD700 !important; filter: drop-shadow(0 0 10px #FFD700); }
-        /* The Red Flash State */
-        .error-flash { background-color: #990000 !important; }
+
+        /* The 2-Second Somatic Fade-In */
+        .monolith-container {
+            opacity: 0;
+            animation: fadeIn 2s ease-in forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* The Perfect Cross Geometry */
+        .monolith-svg {
+            width: 80vw;
+            max-width: 400px;
+        }
+
+        .segment {
+            stroke: #ffffff;
+            stroke-width: 4;
+            fill: none;
+            transition: all 0.3s ease;
+        }
     </style>
 </head>
-<body id="vault-body">
+<body>
 
     <div class="monolith-container">
         <svg viewBox="0 0 100 100" class="monolith-svg">
-            <line id="p1" x1="50" y1="10" x2="50" y2="30" class="segment" />
-            <line id="p2" x1="50" y1="30" x2="50" y2="50" class="segment" />
-            <line id="p3" x1="50" y1="50" x2="50" y2="70" class="segment" />
-            <line id="p4" x1="50" y1="70" x2="50" y2="90" class="segment" />
-            <line id="c1" x1="10" y1="40" x2="30" y2="40" class="segment" />
-            <line id="c2" x1="30" y1="40" x2="50" y2="40" class="segment" />
-            <line id="c3" x1="50" y1="40" x2="70" y2="40" class="segment" />
-            <line id="c4" x1="70" y1="40" x2="90" y2="40" class="segment" />
+            <line x1="50" y1="10" x2="50" y2="30" class="segment" id="pillar-1" />
+            <line x1="50" y1="30" x2="50" y2="50" class="segment" id="pillar-2" />
+            <line x1="50" y1="50" x2="50" y2="70" class="segment" id="pillar-3" />
+            <line x1="50" y1="70" x2="50" y2="90" class="segment" id="pillar-4" />
+            
+            <line x1="10" y1="50" x2="30" y2="50" class="segment" id="crossbar-1" />
+            <line x1="30" y1="50" x2="50" y2="50" class="segment" id="crossbar-2" />
+            <line x1="50" y1="50" x2="70" y2="50" class="segment" id="crossbar-3" />
+            <line x1="70" y1="50" x2="90" y2="50" class="segment" id="crossbar-4" />
         </svg>
     </div>
 
-    <script>
-        let score = 0;
-        const segments = ['p1', 'p2', 'p3', 'p4', 'c1', 'c2', 'c3', 'c4'];
-        const mirrorMap = { 'p1': 'p4', 'p4': 'p1', 'p2': 'p3', 'p3': 'p2', 'c1': 'c4', 'c4': 'c1', 'c2': 'c3', 'c3': 'c2' };
-        let currentMirror = null;
-        let canInteract = false;
-
-        // 1. The "Fail" Trigger (Background)
-        document.body.addEventListener('pointerdown', (e) => {
-            if (!canInteract) return;
-            // If the thing we touched isn't a segment, it's a fail
-            if (!e.target.classList.contains('segment')) {
-                handleFailure();
-            }
-        });
-
-        function startChallenge() {
-            canInteract = true;
-            const randomId = segments[Math.floor(Math.random() * segments.length)];
-            const target = document.getElementById(randomId);
-            currentMirror = mirrorMap[randomId];
-            target.style.stroke = '#555555'; 
-
-            segments.forEach(id => {
-                const el = document.getElementById(id);
-                el.onpointerdown = function(e) {
-                    e.stopPropagation(); // Stop the background from "hearing" this
-                    if (this.id === currentMirror) {
-                        handleSuccess(this, target);
-                    } else {
-                        handleFailure();
-                    }
-                };
-            });
-        }
-
-        function handleSuccess(element, target) {
-            canInteract = false;
-            element.classList.add('success-glow');
-            score++;
-            setTimeout(() => {
-                element.classList.remove('success-glow');
-                target.style.stroke = '#ffffff';
-                if (score < 3) startChallenge();
-                else { 
-                    alert("PROTOCOL COMPLETE: ARCHITECT VERIFIED 📐"); 
-                    score = 0; 
-                    startChallenge(); 
-                }
-            }, 600);
-        }
-
-        function handleFailure() {
-            if (!canInteract) return;
-            canInteract = false;
-            document.body.classList.add('error-flash');
-            score = 0;
-            setTimeout(() => {
-                document.body.classList.remove('error-flash');
-                // Reset colors and restart
-                segments.forEach(id => document.getElementById(id).style.stroke = '#ffffff');
-                startChallenge();
-            }, 400);
-        }
-
-        setTimeout(startChallenge, 2500);
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
