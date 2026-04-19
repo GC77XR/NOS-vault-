@@ -3,15 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NOS_VESSEL_PROTOCOL</title>
+    <title>NOS_CALIBRATION</title>
     <style>
-        :root {
-            --vanguard: #4B0082;
-            --entrepreneur: #00FFFF;
-            --alchemist: #FFD700;
-            --active-glow: #ffffff;
-        }
-
         body {
             background-color: #000000;
             margin: 0;
@@ -20,142 +13,100 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
-            font-family: monospace;
+            font-family: 'Courier New', Courier, monospace;
             color: #ffffff;
-            user-select: none;
+            text-align: center;
             overflow: hidden;
         }
 
-        #tactical-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-            margin-bottom: 50px;
-        }
+        h1 { font-size: 14px; letter-spacing: 2px; margin-bottom: 40px; padding: 0 20px; }
 
-        .protocol-btn {
-            background: none;
-            border: 1px solid #ffffff;
-            color: #ffffff;
-            padding: 12px;
-            font-size: 10px;
-            letter-spacing: 1px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        /* Protocol Specific Glowing Buttons 🌟 */
-        #btn-vanguard.active { box-shadow: 0 0 15px var(--vanguard); border-color: var(--vanguard); color: var(--vanguard); }
-        #btn-entrepreneur.active { box-shadow: 0 0 15px var(--entrepreneur); border-color: var(--entrepreneur); color: var(--entrepreneur); }
-        #btn-alchemist.active { box-shadow: 0 0 15px var(--alchemist); border-color: var(--alchemist); color: var(--alchemist); }
-
+        /* The Ritual Circle ⚓ */
         #core-node {
-            width: 140px;
-            height: 140px;
-            border: 2px solid #ffffff;
+            width: 150px;
+            height: 150px;
+            border: 2px solid #4B0082; /* Starts Indigo */
             border-radius: 50%;
-            transition: background-color 5s linear;
+            background-color: #4B0082;
+            transition: background-color 8s ease, border-color 8s ease;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
-        #core-node.holding {
-            background-color: var(--active-glow);
+        /* Transmutation to Yellow 🌕 */
+        #core-node.yellow {
+            background-color: #FFFF00;
+            border-color: #FFFF00;
+            box-shadow: 0 0 30px #FFFF00;
         }
 
         #instruction-text {
-            margin-top: 30px;
-            font-size: 11px;
-            text-align: center;
+            margin-top: 40px;
+            font-size: 12px;
+            line-height: 1.6;
             max-width: 300px;
-            line-height: 1.8;
-            letter-spacing: 1px;
             text-transform: uppercase;
         }
+        
+        .hidden { display: none; }
     </style>
 </head>
 <body>
 
-    <div id="tactical-grid">
-        <button class="protocol-btn" id="btn-vanguard" onclick="setProtocol('vanguard')">VANGUARD</button>
-        <button class="protocol-btn" id="btn-entrepreneur" onclick="setProtocol('entrepreneur')">ENTREPRENEUR</button>
-        <button class="protocol-btn" id="btn-alchemist" onclick="setProtocol('alchemist')">ALCHEMIST</button>
-    </div>
+    <h1>WELCOME TO DJ GC77XR AND MICRO HAUS NOS - NEURAL OPERATING SYSTEM CALIBRATION</h1>
 
     <div id="core-node"></div>
-    <div id="instruction-text">INITIALIZE SYSTEM</div>
+    
+    <div id="instruction-text">PLEASE HOLD YOUR TOKEN ON YOUR RIGHT HAND.</div>
 
     <script>
-        const protocols = {
-            vanguard: { color: '#4B0082', bpm: 45, type: 'sine' },
-            entrepreneur: { color: '#00FFFF', bpm: 140, type: 'square' },
-            alchemist: { color: '#FFD700', bpm: 118, type: 'triangle' }
-        };
+        const node = document.getElementById('core-node');
+        const text = document.getElementById('instruction-text');
+        let audioCtx;
+        let stage = 1;
 
-        let current = null;
-        let holdTimer, audioCtx, pulseInterval;
-        let isActive = false;
+        // Stage 1 -> 2: Auto-start the Indigo to Yellow shift
+        setTimeout(() => {
+            node.classList.add('yellow');
+            // Wait for transition to finish
+            setTimeout(() => {
+                stage = 2;
+                text.innerHTML = "TAP ON THE CIRCLE AND PLACE YOUR LEFT HAND ON THE RIGHT HAND TO START THE VESSEL PROTOCOL.<br><br>RESET - IGNITE - INTEGRATE";
+            }, 8000); 
+        }, 1000);
 
-        function setProtocol(id) {
-            current = protocols[id];
-            current.id = id;
-            document.querySelectorAll('.protocol-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById('btn-' + id).classList.add('active');
-            
-            document.documentElement.style.setProperty('--active-glow', current.color);
-            
-            // Set the Ritual Text 🤝
-            document.getElementById('instruction-text').innerHTML = 
-                "PLEASE PUT THE TOKEN ON YOUR RIGHT HAND USE YOUR LEFT HAND TO HANDSHAKE YOUR RIGHT HAND TO START THE IMMERSIVE CALIBRATION.";
-            
-            stopAll();
-        }
-
-        function playPulse() {
-            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-
-            const ms = (60 / current.bpm) * 1000;
-            pulseInterval = setInterval(() => {
-                const osc = audioCtx.createOscillator();
-                const g = audioCtx.createGain();
-                osc.type = current.type;
-                osc.frequency.setValueAtTime(current.id === 'vanguard' ? 55 : 220, audioCtx.currentTime);
-                g.gain.setValueAtTime(0.3, audioCtx.currentTime);
-                g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
-                osc.connect(g).connect(audioCtx.destination);
-                osc.start(); osc.stop(audioCtx.currentTime + 0.5);
-            }, ms);
-        }
-
-        function stopAll() {
-            clearInterval(pulseInterval);
-            isActive = false;
-            document.getElementById('core-node').classList.remove('holding');
-            clearTimeout(holdTimer);
-        }
-
-        document.getElementById('core-node').addEventListener('touchstart', (e) => {
-            if (!current || isActive) return;
-            e.preventDefault();
-            e.target.classList.add('holding');
-            
-            holdTimer = setTimeout(() => {
-                isActive = true;
-                playPulse();
-                document.getElementById('instruction-text').innerHTML = current.id.toUpperCase() + " CALIBRATION ACTIVE";
-            }, 5000); // 5s Ritual Hold
-        });
-
-        document.getElementById('core-node').addEventListener('touchend', () => { if (!isActive) stopAll(); });
-
-        let last = 0;
-        document.body.addEventListener('touchend', () => {
-            const now = Date.now();
-            if (now - last < 500 && isActive) {
-                document.getElementById('instruction-text').innerHTML = "CALIBRATION COMPLETE.<br>OPEN YOUR HANDS.";
-                stopAll();
+        // Stage 3: The Tap/Handshake to activate Audio
+        node.addEventListener('click', () => {
+            if (stage === 2) {
+                initializeAudio();
+                text.innerHTML = "VESSEL PROTOCOL ACTIVE";
             }
-            last = now;
         });
+
+        // iPhone/Desktop Audio Unlock 🔓
+        function initializeAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            // Start the 118 BPM Pulse
+            const interval = (60 / 118) * 1000;
+            setInterval(() => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(110, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
+                osc.connect(gain).connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.5);
+            }, interval);
+        }
     </script>
 </body>
 </html>
