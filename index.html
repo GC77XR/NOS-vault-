@@ -44,12 +44,10 @@
             transition: all 0.3s ease;
         }
 
-        /* The Selection Glow 🌟 */
-        .protocol-btn.active {
-            background: #ffffff;
-            color: #000000;
-            box-shadow: 0 0 15px var(--active-glow), 0 0 30px var(--active-glow);
-        }
+        /* Protocol Specific Glowing Buttons 🌟 */
+        #btn-vanguard.active { box-shadow: 0 0 15px var(--vanguard); border-color: var(--vanguard); color: var(--vanguard); }
+        #btn-entrepreneur.active { box-shadow: 0 0 15px var(--entrepreneur); border-color: var(--entrepreneur); color: var(--entrepreneur); }
+        #btn-alchemist.active { box-shadow: 0 0 15px var(--alchemist); border-color: var(--alchemist); color: var(--alchemist); }
 
         #core-node {
             width: 140px;
@@ -65,10 +63,11 @@
 
         #instruction-text {
             margin-top: 30px;
-            font-size: 12px;
+            font-size: 11px;
             text-align: center;
-            max-width: 280px;
-            line-height: 1.6;
+            max-width: 300px;
+            line-height: 1.8;
+            letter-spacing: 1px;
             text-transform: uppercase;
         }
     </style>
@@ -86,9 +85,9 @@
 
     <script>
         const protocols = {
-            vanguard: { color: '#4B0082', bpm: 45, type: 'sine', cmd: 'OWN THE WEIGHT.<br>RIGHT HAND GRIP. LEFT HAND COVER.' },
-            entrepreneur: { color: '#00FFFF', bpm: 140, type: 'square', cmd: 'CUT THE STATIC.<br>RIGHT HAND GRIP. LEFT HAND COVER.' },
-            alchemist: { color: '#FFD700', bpm: 118, type: 'triangle', cmd: 'UNIFIED STATE.<br>RIGHT HAND GRIP. LEFT HAND COVER.' }
+            vanguard: { color: '#4B0082', bpm: 45, type: 'sine' },
+            entrepreneur: { color: '#00FFFF', bpm: 140, type: 'square' },
+            alchemist: { color: '#FFD700', bpm: 118, type: 'triangle' }
         };
 
         let current = null;
@@ -97,10 +96,16 @@
 
         function setProtocol(id) {
             current = protocols[id];
+            current.id = id;
             document.querySelectorAll('.protocol-btn').forEach(b => b.classList.remove('active'));
             document.getElementById('btn-' + id).classList.add('active');
+            
             document.documentElement.style.setProperty('--active-glow', current.color);
-            document.getElementById('instruction-text').innerHTML = current.cmd;
+            
+            // Set the Ritual Text 🤝
+            document.getElementById('instruction-text').innerHTML = 
+                "PLEASE PUT THE TOKEN ON YOUR RIGHT HAND USE YOUR LEFT HAND TO HANDSHAKE YOUR RIGHT HAND TO START THE IMMERSIVE CALIBRATION.";
+            
             stopAll();
         }
 
@@ -113,7 +118,7 @@
                 const osc = audioCtx.createOscillator();
                 const g = audioCtx.createGain();
                 osc.type = current.type;
-                osc.frequency.setValueAtTime(id === 'vanguard' ? 55 : 220, audioCtx.currentTime);
+                osc.frequency.setValueAtTime(current.id === 'vanguard' ? 55 : 220, audioCtx.currentTime);
                 g.gain.setValueAtTime(0.3, audioCtx.currentTime);
                 g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
                 osc.connect(g).connect(audioCtx.destination);
@@ -132,11 +137,12 @@
             if (!current || isActive) return;
             e.preventDefault();
             e.target.classList.add('holding');
+            
             holdTimer = setTimeout(() => {
                 isActive = true;
                 playPulse();
-                document.getElementById('instruction-text').innerHTML = "CALIBRATION ACTIVE";
-            }, 5000);
+                document.getElementById('instruction-text').innerHTML = current.id.toUpperCase() + " CALIBRATION ACTIVE";
+            }, 5000); // 5s Ritual Hold
         });
 
         document.getElementById('core-node').addEventListener('touchend', () => { if (!isActive) stopAll(); });
