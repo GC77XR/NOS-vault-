@@ -2,23 +2,31 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Vessel Protocol | NOS</title>
+    <title>V-077XR // NOS VESSEL</title>
     <link rel="stylesheet" href="style.css">
 </head>
-<body id="vessel-root" class="sata-state">
-    <div id="canvas-container"></div>
-
-    <div id="vessel-overlay" class="hidden">
-        <div id="logo-anchor">
-            <img id="micro-haus-logo" src="8419.png" alt="Micro Haus Logo">
-        </div>
-        <div id="final-seal" class="hidden">
-            <h1 class="pulse-text">CALIBRATION COMPLETE</h1>
-        </div>
+<body>
+    <div id="boot-screen">
+        <button id="start-btn">START NOS-VESSEL CALIBRATION</button>
     </div>
 
-    <audio id="calibration-track" src="your-audio-file.mp3"></audio>
+    <div id="vessel-container" class="hidden">
+        <div id="gold-layer"></div>
+        
+        <div id="media-stage">
+            <img id="main-asset" src="8419.png" alt="NOS Logo">
+        </div>
+
+        <div id="interface" class="hidden">
+            <button id="re-enter">RE-ENTER VESSEL</button>
+        </div>
+
+        <div id="data-log">
+            <div id="serial-id">SESSION_#000000</div>
+            <div id="timestamp">SYNC: --:--:--</div>
+            <div id="exit-cmd">> TERMINATE_SESSION</div>
+        </div>
+    </div>
     <script src="script.js"></script>
 </body>
 </html>
