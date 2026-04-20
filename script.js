@@ -7,7 +7,7 @@ const startBtn = document.getElementById('start-btn');
 const bootScreen = document.getElementById('boot-screen');
 const vessel = document.getElementById('vessel-container');
 const terminateBtn = document.getElementById('exit-cmd');
-const imageA = document.getElementById('main-asset'); // 8419.png
+const imageA = document.getElementById('main-asset'); 
 const imageB = document.querySelector('img[src*="7996.png"]');
 
 const bpm = 118;
@@ -16,7 +16,7 @@ const beatInterval = 60 / bpm;
 // --- SPEECH ENGINE ---
 function speak(text) {
     const msg = new SpeechSynthesisUtterance(text);
-    msg.rate = 0.8; // Warm, guiding pace
+    msg.rate = 0.8;  
     msg.pitch = 1.1; 
     window.speechSynthesis.speak(msg);
 }
@@ -26,14 +26,15 @@ startBtn.addEventListener('click', () => {
     bootScreen.classList.add('hidden');
     vessel.classList.remove('hidden');
     
-    // Set initial visibility
+    // Set initial visibility for cross-fade
     imageA.classList.add('visible', 'pulse-lub');
     imageB.classList.add('faded', 'pulse-dub');
     
     initiateCalibration();
 });
 
-terminateBtn.addEventListener('click', terminateSession);
+// Using 'pointerdown' helps the button work on both mouse and touch screens
+terminateBtn.addEventListener('pointerdown', terminateSession);
 
 function initiateCalibration() {
     // 0s: Reset
@@ -42,10 +43,12 @@ function initiateCalibration() {
     // 12s: Ignite
     setTimeout(() => speak("Ignite"), 12000);
     
-    // 15s: Cross-fade Start (A fades out, B fades in)
+    // 15s: Cross-fade Start
     setTimeout(() => {
-        imageA.classList.replace('visible', 'faded');
-        imageB.classList.replace('faded', 'visible');
+        if(imageA && imageB) {
+            imageA.classList.replace('visible', 'faded');
+            imageB.classList.replace('faded', 'visible');
+        }
     }, 15000);
     
     // 25s: Integration
@@ -60,7 +63,7 @@ function initiateCalibration() {
 
 function updateDataLog() {
     totalSeconds++;
-    if (totalSeconds >= 32) { // Ends just after the final voice line
+    if (totalSeconds >= 32) { 
         terminateSession();
         return;
     }
@@ -72,8 +75,14 @@ function updateDataLog() {
 function terminateSession() {
     clearInterval(timerInterval);
     clearInterval(heartbeatInterval);
+    
+    // Stop animations
     imageA.classList.remove('pulse-lub');
     imageB.classList.remove('pulse-dub');
+    
+    // Silence any ongoing speech
+    window.speechSynthesis.cancel();
+    
     alert("30-Second Proof of Concept Successful.");
 }
 
@@ -90,6 +99,6 @@ function playHeartbeat() {
         o.start(time);
         o.stop(time + 0.1);
     };
-    osc(60, now, 0.5); // Lub
-    osc(90, now + 0.15, 0.3); // Dub
+    osc(60, now, 0.5); 
+    osc(90, now + 0.15, 0.3); 
 }
