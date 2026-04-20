@@ -9,7 +9,6 @@
         #ui-layer { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10; text-align: center; }
         #calibrationTrigger { background: #bc00ff; color: white; border: 1px solid #bc00ff; padding: 15px 30px; font-size: 1.2rem; cursor: pointer; text-transform: uppercase; letter-spacing: 2px;}
     </style>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body>
     <div id="ui-layer">
@@ -17,82 +16,8 @@
         <button id="calibrationTrigger">START CALIBRATION</button>
     </div>
 
-    <script>
-        const calibrationButton = document.getElementById('calibrationTrigger');
-        const SECRET_KEY_HEX = "4e4f53204d482037"; // NOS MH 77
-
-        // --- 1. UNIFIED TRIGGER LOGIC ---
-        calibrationButton.addEventListener('click', async () => {
-            document.getElementById('ui-layer').style.display = 'none';
-            
-            if ('NDEFReader' in window) {
-                console.log("> NFC Hardware Detected. Awaiting Protocol Key...");
-                try {
-                    const ndef = new NDEFReader();
-                    await ndef.scan();
-                    ndef.onreading = ({ message }) => {
-                        const decoder = new TextDecoder();
-                        for (const record of message.records) {
-                            const data = decoder.decode(record.data);
-                            if (data.toLowerCase().includes(SECRET_KEY_HEX)) {
-                                initXRSpace();
-                            }
-                        }
-                    };
-                } catch (e) {
-                    console.log("> NFC Scan failed or cancelled. Bypassing...");
-                    initXRSpace();
-                }
-            } else {
-                console.log("> NFC Not Supported. Executing Desktop Bypass...");
-                initXRSpace();
-            }
-        });
-
-        // --- 2. 3D ENGINE & GAZE INTERACTION ---
-        let scene, camera, renderer, coreTrackNode;
-        let gazeTimer = 0;
-        let isMeditationActive = false;
-        const raycaster = new THREE.Raycaster();
-        const centerVision = new THREE.Vector2(0, 0);
-
-        function initXRSpace() {
-            scene = new THREE.Scene();
-            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            document.body.appendChild(renderer.domElement);
-
-            // Create the central Meditation Node
-            const geo = new THREE.OctahedronGeometry(0.3);
-            const mat = new THREE.MeshBasicMaterial({ color: 0xbc00ff, wireframe: true });
-            coreTrackNode = new THREE.Mesh(geo, mat);
-            coreTrackNode.position.set(0, 1.6, -3); // Eye level
-            scene.add(coreTrackNode);
-
-            animate();
-        }
-
-        function animate() {
-            requestAnimationFrame(animate);
-            if (coreTrackNode) {
-                coreTrackNode.rotation.y += 0.01;
-                
-                // Gaze Detection Logic
-                raycaster.setFromCamera(centerVision, camera);
-                const focus = raycaster.intersectObject(coreTrackNode);
-
-                if (focus.length > 0 && !isMeditationActive) {
-                    gazeTimer += 16; 
-                    coreTrackNode.scale.setScalar(1 + (gazeTimer / 3000) * 0.5);
-                    if (gazeTimer >= 3000) {
-                        isMeditationActive = true;
-                        triggerMeditationTransition();
-                    }
-                } else {
-                    gazeTimer = 0;
-                    if(!isMeditationActive) coreTrackNode.scale.setScalar(1);
-                }
-            }
-            <script src="script.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
+    <script src="script.js"></script>
 </body>
+</html>
