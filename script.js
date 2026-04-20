@@ -1,27 +1,52 @@
-const body = document.body;
-const toggleBtn = document.getElementById('experience-toggle');
-const logo = document.getElementById('logo-anchor');
-const seal = document.getElementById('final-seal');
+:root {
+    --indigo-sata: #1a0033;
+    --gold-coda: #FFD700;
+}
 
-toggleBtn.addEventListener('click', () => {
-    body.classList.add('coda-state');
-    toggleBtn.style.display = 'none';
+body, html { 
+    margin: 0; padding: 0; width: 100%; height: 100%; 
+    overflow: hidden; background-color: var(--indigo-sata);
+    display: flex; justify-content: center; align-items: center;
+}
 
-    // 30,000ms = 30 seconds
-    setTimeout(() => {
-        logo.style.opacity = "0.05"; // Start 10s fade to ghostly trace
+/* 30-Second Background Transition */
+.sata-state { background-color: var(--indigo-sata); transition: background-color 30s ease-in-out; }
+.coda-state { background-color: var(--gold-coda); }
 
-        seal.innerHTML = `
-            <h1 class="pulse-text">NOS CALIBRATION COMPLETE</h1>
-            <p class="command-text">DJ GC77XR: Reset-Ignite-Integrate</p>
-        `;
-        seal.classList.remove('hidden');
+.hidden { display: none; }
 
-        const resetBtn = document.createElement('button');
-        resetBtn.innerText = "Return to NOS - Vessel";
-        resetBtn.id = "return-btn";
-        document.body.appendChild(resetBtn);
+/* 10-Second Logo Dissolve */
+#logo-anchor { transition: opacity 10s ease-in-out; }
 
-        resetBtn.onclick = () => location.reload(); 
-    }, 30000); 
-});
+@keyframes infinite-pulse {
+    0%, 100% { opacity: 0.4; filter: drop-shadow(0 0 5px #FFD700); }
+    50% { opacity: 1; filter: drop-shadow(0 0 20px #FFD700); }
+}
+
+.pulse-text {
+    color: #1a0033;
+    font-size: 2rem;
+    text-align: center;
+    animation: infinite-pulse 4s ease-in-out infinite;
+}
+
+.command-text {
+    font-family: monospace;
+    color: #1a0033;
+    font-weight: bold; /* Standout command */
+    text-align: center;
+    letter-spacing: 2px;
+}
+
+/* Bold Gold Button Design */
+#experience-toggle, #return-btn {
+    position: absolute; bottom: 50px;
+    padding: 15px 30px; cursor: pointer;
+    background: transparent;
+    border: 3px solid #FFD700; /* Gold Border */
+    color: #FFD700; /* Gold Text */
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 1rem;
+    letter-spacing: 2px;
+}
