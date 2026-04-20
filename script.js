@@ -1,4 +1,4 @@
-et audioCtx;
+let audioCtx;
 const startBtn = document.getElementById('start-btn');
 const bootScreen = document.getElementById('boot-screen');
 const vessel = document.getElementById('vessel-container');
