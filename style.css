@@ -57,7 +57,7 @@ body {
 
 #media-stage {
     position: relative;
-    width: 400px; /* Size to fit your assets */
+    width: 400px; 
     height: 400px;
     display: flex;
     justify-content: center;
@@ -67,9 +67,9 @@ body {
 /* --- CROSS-FADE & PULSE LOGIC --- */
 
 #media-stage img {
-    position: absolute; /* Stacks images */
+    position: absolute; 
     max-width: 100%;
-    transition: opacity 3s ease-in-out; /* The smooth 3s cross-fade */
+    transition: opacity 3s ease-in-out; 
 }
 
 .visible { 
@@ -80,7 +80,6 @@ body {
     opacity: 0; 
 }
 
-/* Heartbeat Animations */
 .pulse-lub {
     animation: heartbeat-lub 0.508s ease-in-out infinite;
 }
