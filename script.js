@@ -1,4 +1,4 @@
-let audioCtx;?
+let audioCtx;
 const startBtn = document.getElementById('start-btn');
 const bootScreen = document.getElementById('boot-screen');
 const vessel = document.getElementById('vessel-container');
@@ -21,5 +21,5 @@ startBtn.addEventListener('click', () => {
 
 function initiateCalibration() {
     console.log("NOS Vessel Ignited at 118 BPM...");
-    // We will build the 'lub-dub' oscillators here next
+    // The heartbeat oscillators will be added here next!
 }
