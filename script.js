@@ -1,4 +1,4 @@
-console.log("BRAIN CONNECTED: V3 Active");
+console.log("BRAIN CONNECTED: Visibility Protocol Alpha");
 
 const SECRET_KEY_HEX = "4e4f53204d482037"; 
 let scene, camera, renderer, coreTrackNode;
@@ -11,20 +11,28 @@ function initXRSpace() {
     console.log("Initializing 3D Space...");
     
     scene = new THREE.Scene();
-    // Test color: Dark Navy Blue (0x000033)
     scene.background = new THREE.Color(0x000033); 
 
+    // 1. Camera Setup: Positioned back so we can see the center
     camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.set(0, 0, 5); 
+    camera.lookAt(0, 0, 0); 
     
-    renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+    renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(window.devicePixelRatio); // Helps mobile clarity
+    renderer.setPixelRatio(window.devicePixelRatio); 
     document.body.appendChild(renderer.domElement);
 
-    const geo = new THREE.OctahedronGeometry(0.3);
-    const mat = new THREE.MeshBasicMaterial({ color: 0xbc00ff, wireframe: true });
+    // 2. Object Setup: Solid and Double-Sided for maximum visibility
+    const geo = new THREE.OctahedronGeometry(1.0); // Larger size
+    const mat = new THREE.MeshBasicMaterial({ 
+        color: 0xbc00ff, 
+        wireframe: false, 
+        side: THREE.DoubleSide 
+    });
+    
     coreTrackNode = new THREE.Mesh(geo, mat);
-    coreTrackNode.position.set(0, 1.6, -3);
+    coreTrackNode.position.set(0, 0, 0); // Placed at the very center
     scene.add(coreTrackNode);
 
     animate();
@@ -34,6 +42,8 @@ function animate() {
     requestAnimationFrame(animate);
     if (coreTrackNode) {
         coreTrackNode.rotation.y += 0.01;
+        coreTrackNode.rotation.x += 0.005;
+
         raycaster.setFromCamera(centerVision, camera);
         const focus = raycaster.intersectObject(coreTrackNode);
 
