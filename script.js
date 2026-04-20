@@ -3,26 +3,18 @@ const startBtn = document.getElementById('start-btn');
 const bootScreen = document.getElementById('boot-screen');
 const vessel = document.getElementById('vessel-container');
 
-// 118 BPM Constants
 const bpm = 118;
-const beatInterval = 60 / bpm; // 0.508 seconds
+const beatInterval = 60 / bpm;
 
 startBtn.addEventListener('click', () => {
-    // Initialize Audio Context
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    
-    // UI Transition
-    bootScreen.style.display = 'none';
+    bootScreen.classList.add('hidden');
     vessel.classList.remove('hidden');
-    
-    // Start the Ritual Sequence
     initiateCalibration();
 });
 
 function initiateCalibration() {
     console.log("NOS Vessel Ignited at 118 BPM...");
-    
-    // Schedule the heartbeat to start
     setInterval(() => {
         playHeartbeat();
     }, beatInterval * 1000);
@@ -31,7 +23,7 @@ function initiateCalibration() {
 function playHeartbeat() {
     const now = audioCtx.currentTime;
 
-    // THE LUB (Deep Thump)
+    // LUB
     const osc1 = audioCtx.createOscillator();
     const gain1 = audioCtx.createGain();
     osc1.frequency.setValueAtTime(60, now);
@@ -42,7 +34,7 @@ function playHeartbeat() {
     osc1.start(now);
     osc1.stop(now + 0.1);
 
-    // THE DUB (Higher Snap)
+    // DUB
     const osc2 = audioCtx.createOscillator();
     const gain2 = audioCtx.createGain();
     osc2.frequency.setValueAtTime(90, now + 0.15);
