@@ -1,3 +1,4 @@
+console.log("BRAIN CONNECTED");
 const SECRET_KEY_HEX = "4e4f53204d482037"; // NOS MH 77
 let scene, camera, renderer, coreTrackNode;
 let gazeTimer = 0;
