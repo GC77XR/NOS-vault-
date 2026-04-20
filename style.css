@@ -1,6 +1,6 @@
 :root {
     --indigo: #1a0033;
-    --gold: #ffcf40; /* Defining the gold color here */
+    --gold: #ffcf40;
 }
 
 body {
@@ -27,28 +27,45 @@ body {
     padding: 20px 40px;
     letter-spacing: 3px;
     cursor: pointer;
-    transition: all 0.3s ease;
 }
 
-#start-btn:hover {
-    background: var(--gold);
-    color: #000;
-}
-
-/* This is the missing piece that makes things disappear/appear */
-.hidden {
-    display: none !important;
-}
+.hidden { display: none !important; }
 
 #vessel-container {
     height: 100vh;
     display: flex;
-    flex-direction: column;
+    flex-direction: row; /* Side-by-side images */
     justify-content: center;
     align-items: center;
     background: var(--indigo);
+    gap: 50px;
 }
 
-#main-asset {
-    width: 300px;
+/* --- CALIBRATION ANIMATIONS --- */
+
+.pulse-lub {
+    animation: heartbeat-lub 0.508s ease-in-out infinite;
+}
+
+.pulse-dub {
+    animation: heartbeat-dub 0.508s ease-in-out infinite;
+    animation-delay: 0.15s; /* Delays the second image for the 'Dub' */
+}
+
+@keyframes heartbeat-lub {
+    0%, 100% { transform: scale(1); filter: brightness(100%); }
+    20% { transform: scale(1.1); filter: brightness(140%); }
+}
+
+@keyframes heartbeat-dub {
+    0%, 100% { transform: scale(1); filter: brightness(100%); }
+    20% { transform: scale(1.1); filter: brightness(140%); }
+}
+
+#data-log {
+    position: absolute;
+    bottom: 20px;
+    color: var(--gold);
+    text-align: center;
+    width: 100%;
 }
