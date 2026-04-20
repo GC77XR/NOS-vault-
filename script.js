@@ -4,18 +4,23 @@ const overlay = document.getElementById('vessel-overlay');
 const logo = document.getElementById('micro-haus-logo');
 const seal = document.getElementById('final-seal');
 
-audio.ontimeupdate = () => {
-    // Trigger transition at 650 seconds
-    if (audio.currentTime >= 650) {
+// Tap anywhere to start the experience and unlock audio
+window.addEventListener('click', () => {
+    audio.play().catch(() => console.log("Audio waiting for file..."));
+    
+    // Fade in the logo experience
+    overlay.classList.remove('hidden');
+    
+    // Start transition to Gold after a short delay for testing
+    setTimeout(() => {
         root.classList.add('coda-state');
-        overlay.classList.remove('hidden');
-        // Logic to sink 3D object would go here
-    }
-};
+    }, 3000);
+}, { once: true });
 
-logo.onclick = () => {
+logo.onclick = (e) => {
+    e.stopPropagation(); // Prevents restarting the intro
     logo.classList.add('stardust-evaporate');
     setTimeout(() => {
         seal.classList.remove('hidden');
-    }, 2032); // 4 beats at 118 BPM
+    }, 2032);
 };
