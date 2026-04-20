@@ -1,26 +1,27 @@
-const audio = document.getElementById('calibration-track');
-const root = document.getElementById('vessel-root');
-const overlay = document.getElementById('vessel-overlay');
-const logo = document.getElementById('micro-haus-logo');
+const body = document.body;
+const toggleBtn = document.getElementById('experience-toggle');
+const logo = document.getElementById('logo-anchor');
 const seal = document.getElementById('final-seal');
 
-// Tap anywhere to start the experience and unlock audio
-window.addEventListener('click', () => {
-    audio.play().catch(() => console.log("Audio waiting for file..."));
-    
-    // Fade in the logo experience
-    overlay.classList.remove('hidden');
-    
-    // Start transition to Gold after a short delay for testing
-    setTimeout(() => {
-        root.classList.add('coda-state');
-    }, 3000);
-}, { once: true });
+toggleBtn.addEventListener('click', () => {
+    body.classList.add('coda-state');
+    toggleBtn.style.display = 'none';
 
-logo.onclick = (e) => {
-    e.stopPropagation(); // Prevents restarting the intro
-    logo.classList.add('stardust-evaporate');
+    // 30,000ms = 30 seconds
     setTimeout(() => {
+        logo.style.opacity = "0.05"; // Start 10s fade to ghostly trace
+
+        seal.innerHTML = `
+            <h1 class="pulse-text">NOS CALIBRATION COMPLETE</h1>
+            <p class="command-text">DJ GC77XR: Reset-Ignite-Integrate</p>
+        `;
         seal.classList.remove('hidden');
-    }, 2032);
-};
+
+        const resetBtn = document.createElement('button');
+        resetBtn.innerText = "Return to NOS - Vessel";
+        resetBtn.id = "return-btn";
+        document.body.appendChild(resetBtn);
+
+        resetBtn.onclick = () => location.reload(); 
+    }, 30000); 
+});
