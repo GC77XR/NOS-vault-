@@ -8,14 +8,23 @@
         body { 
             margin: 0; 
             overflow: hidden; 
+            /* Deep space gradient */
             background: radial-gradient(circle, #1a0033 0%, #000000 100%); 
             color: #bc00ff; 
             font-family: monospace; 
         }
         #ui-layer { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10; text-align: center; }
-        #calibrationTrigger { background: transparent; color: #bc00ff; border: 2px solid #bc00ff; padding: 15px 30px; font-size: 1.2rem; cursor: pointer; text-transform: uppercase; letter-spacing: 4px; transition: 0.3s; }
-        #calibrationTrigger:hover { background: #bc00ff; color: #000; }
-        #debug-log { position: absolute; bottom: 20px; left: 20px; color: #00ff00; font-size: 10px; opacity: 0.5; }
+        #calibrationTrigger { 
+            background: transparent; 
+            color: #bc00ff; 
+            border: 2px solid #bc00ff; 
+            padding: 15px 30px; 
+            font-size: 1.2rem; 
+            cursor: pointer; 
+            text-transform: uppercase; 
+            letter-spacing: 4px;
+        }
+        #debug-log { position: absolute; bottom: 20px; left: 20px; color: #00ff00; font-size: 12px; }
     </style>
 </head>
 <body>
@@ -27,7 +36,7 @@
     <div id="debug-log">System: Awaiting Start...</div>
 
     <audio id="meditationTrack" loop>
-        <source src="your-audio-file.mp3" type="audio/mpeg">
+        <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
     </audio>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
