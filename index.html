@@ -18,112 +18,79 @@
     </div>
 
     <script>
-        // --- 1. NFC AUTHENTICATION ---
         const calibrationButton = document.getElementById('calibrationTrigger');
-        const SECRET_KEY_HEX = "4e4f53204d482037"; // "NOS MH 7"
+        const SECRET_KEY_HEX = "4e4f53204d482037"; // NOS MH 77
 
+        // --- 1. UNIFIED TRIGGER LOGIC ---
         calibrationButton.addEventListener('click', async () => {
-            document.getElementById('ui-layer').style.display = 'none'; // Hide 2D UI
+            document.getElementById('ui-layer').style.display = 'none';
             
-            try {
-                const ndef = new NDEFReader();
-                await ndef.scan();
-                
-                ndef.onreading = ({ message }) => {
-                    for (const record of message.records) {
-                        const textDecoder = new TextDecoder();
-                        const data = textDecoder.decode(record.data);
-                        
-                        if (data.toLowerCase().includes(SECRET_KEY_HEX)) {
-                            initXRSpace(); // Trigger 3D Space
+            if ('NDEFReader' in window) {
+                console.log("> NFC Hardware Detected. Awaiting Protocol Key...");
+                try {
+                    const ndef = new NDEFReader();
+                    await ndef.scan();
+                    ndef.onreading = ({ message }) => {
+                        const decoder = new TextDecoder();
+                        for (const record of message.records) {
+                            const data = decoder.decode(record.data);
+                            if (data.toLowerCase().includes(SECRET_KEY_HEX)) {
+                                initXRSpace();
+                            }
                         }
-                    }
-                };
-            } catch (error) {
-                console.error("NFC Failed:", error);
+                    };
+                } catch (e) {
+                    console.log("> NFC Scan failed or cancelled. Bypassing...");
+                    initXRSpace();
+                }
+            } else {
+                console.log("> NFC Not Supported. Executing Desktop Bypass...");
+                initXRSpace();
             }
         });
 
-        // --- 2. 3D SCENE & CONVERGENCE ---
-        let scene, camera, renderer, vaultMesh, coreTrackNode;
-        
-        function initXRSpace() {
-            scene = new THREE.Scene();
-            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-            renderer = new THREE.WebGLRenderer({ alpha: true });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            document.body.appendChild(renderer.domElement);
-
-            // Vault Mesh Setup
-            vaultMesh = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.5, 0.5), new THREE.MeshBasicMaterial({color: 0xbc00ff, wireframe: true}));
-            vaultMesh.position.set(0, 1.5, -2);
-            scene.add(vaultMesh); // Skipping stream animation for foundational testing
-            
-            startVoiceRecognition();
-            animate();
-        }
-
-        // --- 3. VOICE RECOGNITION ---
-        const PROTOCOL_KEY = ["reset", "ignite", "integrate"];
-        
-        function startVoiceRecognition() {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if (!SpeechRecognition) return console.log("Voice not supported on this browser.");
-            
-            const recognition = new SpeechRecognition();
-            recognition.lang = 'en-US';
-            recognition.start();
-
-            recognition.onresult = (event) => {
-                const spokenWords = event.results[0][0].transcript.toLowerCase();
-                const isAuthorized = PROTOCOL_KEY.every(word => spokenWords.includes(word));
-                
-                if (isAuthorized) {
-                    unlockInfinityVault();
-                }
-            };
-        }
-
-        // --- 4. GAZE TRACKING ---
+        // --- 2. 3D ENGINE & GAZE INTERACTION ---
+        let scene, camera, renderer, coreTrackNode;
         let gazeTimer = 0;
         let isMeditationActive = false;
         const raycaster = new THREE.Raycaster();
         const centerVision = new THREE.Vector2(0, 0);
 
-        function unlockInfinityVault() {
-            scene.remove(vaultMesh); // Hide Vault
-            
-            // Show Core Meditation Track Node
-            coreTrackNode = new THREE.Mesh(new THREE.OctahedronGeometry(0.2), new THREE.MeshBasicMaterial({color: 0x00ff00, wireframe: true}));
-            coreTrackNode.position.set(0, 1.5, -2);
+        function initXRSpace() {
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.body.appendChild(renderer.domElement);
+
+            // Create the central Meditation Node
+            const geo = new THREE.OctahedronGeometry(0.3);
+            const mat = new THREE.MeshBasicMaterial({ color: 0xbc00ff, wireframe: true });
+            coreTrackNode = new THREE.Mesh(geo, mat);
+            coreTrackNode.position.set(0, 1.6, -3); // Eye level
             scene.add(coreTrackNode);
+
+            animate();
         }
 
         function animate() {
             requestAnimationFrame(animate);
-            
-            if (coreTrackNode && !isMeditationActive) {
+            if (coreTrackNode) {
                 coreTrackNode.rotation.y += 0.01;
                 
+                // Gaze Detection Logic
                 raycaster.setFromCamera(centerVision, camera);
-                const intersects = raycaster.intersectObject(coreTrackNode);
+                const focus = raycaster.intersectObject(coreTrackNode);
 
-                if (intersects.length > 0) {
-                    gazeTimer += 16; // Approx 16ms per frame
+                if (focus.length > 0 && !isMeditationActive) {
+                    gazeTimer += 16; 
                     coreTrackNode.scale.setScalar(1 + (gazeTimer / 3000) * 0.5);
-
                     if (gazeTimer >= 3000) {
                         isMeditationActive = true;
-                        console.log("> Playing 3:10 Meditation...");
-                        // audio.play() goes here
+                        triggerMeditationTransition();
                     }
                 } else {
                     gazeTimer = 0;
-                    coreTrackNode.scale.setScalar(1);
+                    if(!isMeditationActive) coreTrackNode.scale.setScalar(1);
                 }
             }
-            renderer.render(scene, camera);
-        }
-    </script>
-</body>
-</html>
