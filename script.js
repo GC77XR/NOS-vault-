@@ -1,52 +1,33 @@
-:root {
-    --indigo-sata: #1a0033;
-    --gold-coda: #FFD700;
-}
+const body = document.body;
+const toggleBtn = document.getElementById('experience-toggle');
+const logo = document.getElementById('logo-anchor');
+const seal = document.getElementById('final-seal');
 
-body, html { 
-    margin: 0; padding: 0; width: 100%; height: 100%; 
-    overflow: hidden; background-color: var(--indigo-sata);
-    display: flex; justify-content: center; align-items: center;
-}
+toggleBtn.addEventListener('click', () => {
+    // 1. Start the 30-second color shift
+    body.classList.add('coda-state');
+    
+    // 2. Lock the user in by hiding the button
+    toggleBtn.style.display = 'none';
 
-/* 30-Second Background Transition */
-.sata-state { background-color: var(--indigo-sata); transition: background-color 30s ease-in-out; }
-.coda-state { background-color: var(--gold-coda); }
+    // 3. The 30,000ms (30 second) Timer
+    setTimeout(() => {
+        // Start the 10s logo fade to ghostly trace
+        logo.style.opacity = "0.05";
 
-.hidden { display: none; }
+        // Reveal the final messages
+        seal.innerHTML = `
+            <h1 class="pulse-text">NOS CALIBRATION COMPLETE</h1>
+            <p class="command-text">DJ GC77XR: Reset-Ignite-Integrate</p>
+        `;
+        seal.classList.remove('hidden');
 
-/* 10-Second Logo Dissolve */
-#logo-anchor { transition: opacity 10s ease-in-out; }
+        // Create the Return button
+        const resetBtn = document.createElement('button');
+        resetBtn.innerText = "Return to NOS - Vessel";
+        resetBtn.id = "return-btn";
+        document.body.appendChild(resetBtn);
 
-@keyframes infinite-pulse {
-    0%, 100% { opacity: 0.4; filter: drop-shadow(0 0 5px #FFD700); }
-    50% { opacity: 1; filter: drop-shadow(0 0 20px #FFD700); }
-}
-
-.pulse-text {
-    color: #1a0033;
-    font-size: 2rem;
-    text-align: center;
-    animation: infinite-pulse 4s ease-in-out infinite;
-}
-
-.command-text {
-    font-family: monospace;
-    color: #1a0033;
-    font-weight: bold; /* Standout command */
-    text-align: center;
-    letter-spacing: 2px;
-}
-
-/* Bold Gold Button Design */
-#experience-toggle, #return-btn {
-    position: absolute; bottom: 50px;
-    padding: 15px 30px; cursor: pointer;
-    background: transparent;
-    border: 3px solid #FFD700; /* Gold Border */
-    color: #FFD700; /* Gold Text */
-    font-weight: bold;
-    text-transform: uppercase;
-    font-size: 1rem;
-    letter-spacing: 2px;
-}
+        resetBtn.onclick = () => location.reload(); 
+    }, 30000); 
+});
