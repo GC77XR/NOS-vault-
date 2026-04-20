@@ -16,8 +16,8 @@ const beatInterval = 60 / bpm;
 // --- SPEECH ENGINE ---
 function speak(text) {
     const msg = new SpeechSynthesisUtterance(text);
-    msg.rate = 0.8; // Calm pace
-    msg.pitch = 1.1; // Warm tone
+    msg.rate = 0.8; // Warm, guiding pace
+    msg.pitch = 1.1; 
     window.speechSynthesis.speak(msg);
 }
 
@@ -26,12 +26,14 @@ startBtn.addEventListener('click', () => {
     bootScreen.classList.add('hidden');
     vessel.classList.remove('hidden');
     
-    // Initial state for cross-fade
-    imageA.classList.add('visible');
-    imageB.classList.add('faded');
+    // Set initial visibility
+    imageA.classList.add('visible', 'pulse-lub');
+    imageB.classList.add('faded', 'pulse-dub');
     
     initiateCalibration();
 });
+
+terminateBtn.addEventListener('click', terminateSession);
 
 function initiateCalibration() {
     // 0s: Reset
@@ -40,7 +42,7 @@ function initiateCalibration() {
     // 12s: Ignite
     setTimeout(() => speak("Ignite"), 12000);
     
-    // 15s: Cross-fade Start
+    // 15s: Cross-fade Start (A fades out, B fades in)
     setTimeout(() => {
         imageA.classList.replace('visible', 'faded');
         imageB.classList.replace('faded', 'visible');
@@ -58,7 +60,7 @@ function initiateCalibration() {
 
 function updateDataLog() {
     totalSeconds++;
-    if (totalSeconds >= 31) { // Stop slightly after the final voice line
+    if (totalSeconds >= 32) { // Ends just after the final voice line
         terminateSession();
         return;
     }
@@ -88,6 +90,6 @@ function playHeartbeat() {
         o.start(time);
         o.stop(time + 0.1);
     };
-    osc(60, now, 0.5);
-    osc(90, now + 0.15, 0.3);
+    osc(60, now, 0.5); // Lub
+    osc(90, now + 0.15, 0.3); // Dub
 }
