@@ -1,34 +1,25 @@
-const audio = document.getElementById('calibration-track');
-const root = document.getElementById('vessel-root');
-const overlay = document.getElementById('vessel-overlay');
-const logo = document.getElementById('micro-haus-logo');
-const seal = document.getElementById('final-seal');
+et audioCtx;
+const startBtn = document.getElementById('start-btn');
+const bootScreen = document.getElementById('boot-screen');
+const vessel = document.getElementById('vessel-container');
 
-let transitionTriggered = false;
+// 118 BPM Constants
+const bpm = 118;
+const beatInterval = 60 / bpm; // 0.508 seconds
 
-audio.ontimeupdate = () => {
-    // 1. Start transition at 650s (10s remaining)
-    if (audio.currentTime >= 650 && !transitionTriggered) {
-        transitionTriggered = true;
-        
-        // Background color morph
-        root.classList.add('coda-state');
-        
-        // Reveal rising logo
-        overlay.classList.remove('hidden');
-        logo.parentElement.classList.add('rising-entrance');
-        
-        // Sinking the 3D octahedron (if using a 3D library like Three.js)
-        // sinkOctahedron(); 
-    }
-};
-
-// 2. The Final Interaction
-logo.onclick = () => {
-    logo.classList.add('stardust-evaporate');
+startBtn.addEventListener('click', () => {
+    // Initialize Audio Context
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     
-    // After 4 beats (2.032s), show the final seal
-    setTimeout(() => {
-        seal.classList.remove('hidden');
-    }, 2032);
-};
+    // UI Transition
+    bootScreen.style.display = 'none';
+    vessel.classList.remove('hidden');
+    
+    // Start the Ritual Sequence
+    initiateCalibration();
+});
+
+function initiateCalibration() {
+    console.log("NOS Vessel Ignited at 118 BPM...");
+    // We will build the 'lub-dub' oscillators here next
+}
