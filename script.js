@@ -1,4 +1,4 @@
-console.log("BRAIN CONNECTED: Initializing Vessel Protocol...");
+console.log("BRAIN CONNECTED: V3 Active");
 
 const SECRET_KEY_HEX = "4e4f53204d482037"; 
 let scene, camera, renderer, coreTrackNode;
@@ -9,10 +9,16 @@ const centerVision = new THREE.Vector2(0, 0);
 
 function initXRSpace() {
     console.log("Initializing 3D Space...");
+    
     scene = new THREE.Scene();
+    // Test color: Dark Navy Blue (0x000033)
+    scene.background = new THREE.Color(0x000033); 
+
     camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    
+    renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
     renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(window.devicePixelRatio); // Helps mobile clarity
     document.body.appendChild(renderer.domElement);
 
     const geo = new THREE.OctahedronGeometry(0.3);
@@ -36,7 +42,7 @@ function animate() {
             coreTrackNode.scale.setScalar(1 + (gazeTimer / 3000) * 0.5);
             if (gazeTimer >= 3000) {
                 isMeditationActive = true;
-                console.log("> IGNITE: Protocol Active.");
+                console.log("> IGNITE");
             }
         } else {
             gazeTimer = 0;
@@ -47,7 +53,6 @@ function animate() {
 }
 
 document.getElementById('calibrationTrigger').addEventListener('click', async () => {
-    console.log("Button Clicked. Checking hardware...");
     document.getElementById('ui-layer').style.display = 'none';
    
     if ('NDEFReader' in window) {
@@ -64,11 +69,9 @@ document.getElementById('calibrationTrigger').addEventListener('click', async ()
                 }
             };
         } catch (e) {
-            console.log("NFC Error/Cancel. Bypassing...");
             initXRSpace(); 
         }
     } else {
-        console.log("Desktop detected. Bypassing NFC...");
         initXRSpace(); 
     }
 });
