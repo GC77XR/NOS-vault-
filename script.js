@@ -1,33 +1,34 @@
-const body = document.body;
-const toggleBtn = document.getElementById('experience-toggle');
-const logo = document.getElementById('logo-anchor');
+const audio = document.getElementById('calibration-track');
+const root = document.getElementById('vessel-root');
+const overlay = document.getElementById('vessel-overlay');
+const logo = document.getElementById('micro-haus-logo');
 const seal = document.getElementById('final-seal');
 
-toggleBtn.addEventListener('click', () => {
-    // 1. Start the 30-second color shift
-    body.classList.add('coda-state');
+let transitionTriggered = false;
+
+audio.ontimeupdate = () => {
+    // 1. Start transition at 650s (10s remaining)
+    if (audio.currentTime >= 650 && !transitionTriggered) {
+        transitionTriggered = true;
+        
+        // Background color morph
+        root.classList.add('coda-state');
+        
+        // Reveal rising logo
+        overlay.classList.remove('hidden');
+        logo.parentElement.classList.add('rising-entrance');
+        
+        // Sinking the 3D octahedron (if using a 3D library like Three.js)
+        // sinkOctahedron(); 
+    }
+};
+
+// 2. The Final Interaction
+logo.onclick = () => {
+    logo.classList.add('stardust-evaporate');
     
-    // 2. Lock the user in by hiding the button
-    toggleBtn.style.display = 'none';
-
-    // 3. The 30,000ms (30 second) Timer
+    // After 4 beats (2.032s), show the final seal
     setTimeout(() => {
-        // Start the 10s logo fade to ghostly trace
-        logo.style.opacity = "0.05";
-
-        // Reveal the final messages
-        seal.innerHTML = `
-            <h1 class="pulse-text">NOS CALIBRATION COMPLETE</h1>
-            <p class="command-text">DJ GC77XR: Reset-Ignite-Integrate</p>
-        `;
         seal.classList.remove('hidden');
-
-        // Create the Return button
-        const resetBtn = document.createElement('button');
-        resetBtn.innerText = "Return to NOS - Vessel";
-        resetBtn.id = "return-btn";
-        document.body.appendChild(resetBtn);
-
-        resetBtn.onclick = () => location.reload(); 
-    }, 30000); 
-});
+    }, 2032);
+};
