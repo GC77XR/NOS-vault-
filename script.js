@@ -21,13 +21,13 @@ function initXRSpace() {
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
 
-    // THE ANCHOR (Large, slow background octahedron)
-    const anchorGeo = new THREE.OctahedronGeometry(5, 0);
+    // BACKGROUND ANCHOR
+    const anchorGeo = new THREE.OctahedronGeometry(6, 0);
     const anchorMat = new THREE.MeshBasicMaterial({ color: 0x1a0033, wireframe: true, transparent: true, opacity: 0.2 });
     anchorNode = new THREE.Mesh(anchorGeo, anchorMat);
     scene.add(anchorNode);
 
-    // THE CORE (Your focus node)
+    // CORE NODE
     const coreGeo = new THREE.OctahedronGeometry(1);
     const coreMat = new THREE.MeshBasicMaterial({ color: 0xbc00ff, wireframe: true });
     coreTrackNode = new THREE.Mesh(coreGeo, coreMat);
@@ -40,20 +40,19 @@ function animate() {
     requestAnimationFrame(animate);
     if (coreTrackNode) {
         coreTrackNode.rotation.y += 0.01;
-        anchorNode.rotation.y -= 0.002; // Slow counter-rotation
+        anchorNode.rotation.y -= 0.002;
 
         raycaster.setFromCamera(centerVision, camera);
         const focus = raycaster.intersectObject(coreTrackNode);
 
         if (focus.length > 0 && !isMeditationActive) {
             gazeTimer += 16;
-            let scale = 1 + (gazeTimer / 3000);
-            coreTrackNode.scale.setScalar(scale);
+            coreTrackNode.scale.setScalar(1 + (gazeTimer / 3000));
             
             if (gazeTimer >= 3000) {
                 isMeditationActive = true;
-                audio.play(); // Start the Meditation
-                updateLog("PROTOCOL IGNITED");
+                audio.play().catch(e => updateLog("Playback Error")); 
+                updateLog("MEDITATION ACTIVE");
             }
         }
     }
@@ -61,7 +60,12 @@ function animate() {
 }
 
 document.getElementById('calibrationTrigger').addEventListener('click', () => {
-    updateLog("System Initialized");
+    // ESSENTIAL: "Wake up" audio for S26/iPhone
+    audio.play().then(() => {
+        audio.pause(); 
+        audio.currentTime = 0;
+    }).catch(e => updateLog("Audio Blocked"));
+
     document.getElementById('ui-layer').style.display = 'none';
     initXRSpace();
 });
