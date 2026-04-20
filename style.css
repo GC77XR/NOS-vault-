@@ -3,35 +3,48 @@
     --gold-coda: #FFD700;
 }
 
-body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; }
+body, html { 
+    margin: 0; padding: 0; width: 100%; height: 100%; 
+    overflow: hidden; background-color: var(--indigo-sata);
+}
 
-/* Background States */
 .sata-state { background-color: var(--indigo-sata); transition: background-color 5s ease; }
 .coda-state { background-color: var(--gold-coda); }
 
 .hidden { display: none !important; }
 
-/* The Floating Logo 🌊 */
 #vessel-overlay {
-    position: absolute;
-    top: 0; left: 0;
+    position: absolute; top: 0; left: 0;
     width: 100%; height: 100%;
     display: flex; justify-content: center; align-items: center;
 }
 
-#logo-anchor { animation: liquid-drift 8s ease-in-out infinite; }
+#logo-anchor { 
+    animation: liquid-drift 8s ease-in-out infinite; 
+    cursor: pointer;
+    mix-blend-mode: screen; /* Makes the logo glow against the background */
+}
 
 @keyframes liquid-drift {
     0%, 100% { transform: translate(0, 0) rotate(0deg); }
     50% { transform: translate(15px, -10px) rotate(2deg); }
 }
 
-/* Evaporation Animation ✨ */
-.stardust-evaporate {
-    animation: evaporate-up 2.032s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-}
+.stardust-evaporate { animation: evaporate-up 2.032s forwards; }
 
 @keyframes evaporate-up {
     0% { transform: translateY(0); opacity: 1; filter: brightness(1); }
     100% { transform: translateY(-300px); opacity: 0; filter: blur(10px) brightness(2); }
+}
+
+.pulse-text { 
+    color: var(--indigo-sata); 
+    font-family: sans-serif;
+    animation: seal-pulse 4s ease-out forwards; 
+}
+
+@keyframes seal-pulse {
+    0% { transform: scale(0.8); opacity: 0; }
+    30% { transform: scale(1.1); opacity: 1; }
+    100% { transform: scale(1); opacity: 0; }
 }
