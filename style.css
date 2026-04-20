@@ -9,11 +9,13 @@ body, html {
     display: flex; justify-content: center; align-items: center;
 }
 
+/* 30-Second Background Transition */
 .sata-state { background-color: var(--indigo-sata); transition: background-color 30s ease-in-out; }
 .coda-state { background-color: var(--gold-coda); }
 
 .hidden { display: none; }
 
+/* 10-Second Logo Dissolve */
 #logo-anchor { transition: opacity 10s ease-in-out; }
 
 @keyframes infinite-pulse {
@@ -26,20 +28,24 @@ body, html {
     font-size: 2rem;
     text-align: center;
     animation: infinite-pulse 4s ease-in-out infinite;
-    margin-bottom: 10px;
 }
 
 .command-text {
     font-family: monospace;
-    color: #1a0033; /* Dark indigo for high contrast */
-    font-weight: bold; /* Making it stand out */
+    color: #1a0033;
+    font-weight: bold; /* Standout command */
     text-align: center;
     letter-spacing: 2px;
 }
 
+/* Bold Gold Button Design */
 #experience-toggle, #return-btn {
-    position: absolute; bottom: 40px;
-    padding: 12px 24px; cursor: pointer;
-    background: transparent; border: 2px solid #1a0033;
-    color: #1a0033; font-weight: bold;
-}
+    position: absolute; bottom: 50px;
+    padding: 15px 30px; cursor: pointer;
+    background: transparent;
+    border: 3px solid #FFD700; /* Gold Border */
+    color: #FFD700; /* Gold Text */
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 1rem;
+    letter-spacing: 2p
