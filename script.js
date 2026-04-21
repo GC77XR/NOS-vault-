@@ -4,81 +4,54 @@ const SESSION_LIMIT = 11 * 60;
 let audioCtx, timerStart, nextBeatTime;
 let appState = 'LOBBY';
 
-// --- 3D SCENE SETUP ---
+// Visuals
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
 const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('vesselCanvas'), antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 
-// Create the Arcs from your video
 const arcs = [];
-const arcData = [
-    { rad: 0.8, speed: 0.01, op: 0.8 },
-    { rad: 1.0, speed: -0.008, op: 0.5 },
-    { rad: 1.2, speed: 0.005, op: 0.3 }
-];
+const createArc = (radius, op, speed) => {
+    const geo = new THREE.TorusGeometry(radius, 0.01, 2, 100, Math.PI * 1.5);
+    const mat = new THREE.MeshBasicMaterial({ color: 0x00ffff, transparent: true, opacity: op });
+    const mesh = new THREE.Mesh(geo, mat);
+    scene.add(mesh);
+    return { mesh, speed };
+};
 
-arcData.forEach(data => {
-    const geo = new THREE.TorusGeometry(data.rad, 0.01, 2, 100, Math.PI * 1.4);
-    const mat = new THREE.MeshBasicMaterial({ color: 0x00ffff, transparent: true, opacity: data.op });
-    const arc = new THREE.Mesh(geo, mat);
-    arc.rotation.z = Math.random() * Math.PI;
-    scene.add(arc);
-    arcs.push({ mesh: arc, speed: data.speed });
-});
-
-// Central Glow
-const coreGeo = new THREE.CircleGeometry(0.3, 32);
-const coreMat = new THREE.MeshBasicMaterial({ color: 0x00ffff, transparent: true, opacity: 0.6 });
-const core = new THREE.Mesh(coreGeo, coreMat);
-scene.add(core);
-
+arcs.push(createArc(1.2, 0.7, 0.01));
+arcs.push(createArc(1.5, 0.3, -0.005));
 camera.position.z = 3;
 
-// --- AUDIO ENGINE ---
 function playHeartbeat(time) {
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
-    osc.frequency.value = 50; 
-    gain.gain.setValueAtTime(0.6, time);
-    gain.gain.exponentialRampToValueAtTime(0.001, time + 0.1);
+    osc.frequency.value = 55; 
+    gain.gain.setValueAtTime(0.5, time);
+    gain.gain.exponentialRampToValueAtTime(0.001, time + 0.12);
     osc.connect(gain); gain.connect(audioCtx.destination);
-    osc.start(time); osc.stop(time + 0.1);
+    osc.start(time); osc.stop(time + 0.12);
 }
 
-function playGong() {
-    [110, 144, 210].forEach(f => {
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.frequency.value = f;
-        gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 6);
-        osc.connect(gain); gain.connect(audioCtx.destination);
-        osc.start(); osc.stop(audioCtx.currentTime + 6);
-    });
-}
-
-// --- MAIN LOOP ---
 function animate() {
     requestAnimationFrame(animate);
     if (appState === 'ACTIVE') {
-        // Update Visuals
         arcs.forEach(a => a.mesh.rotation.z += a.speed);
-        core.scale.set(1 + Math.sin(Date.now() * 0.005) * 0.05, 1 + Math.sin(Date.now() * 0.005) * 0.05, 1);
+        
+        const elapsed = (Date.now() - timerStart) / 1000;
+        const remaining = Math.max(0, SESSION_LIMIT - elapsed);
+        
+        document.getElementById('timer').innerText = `${Math.floor(remaining / 60)}:${Math.floor(remaining % 60).toString().padStart(2, '0')}`;
+        document.getElementById('percent').innerText = Math.floor((elapsed / SESSION_LIMIT) * 100);
 
-        // Sync Audio
         while (nextBeatTime < audioCtx.currentTime + 0.1) {
             playHeartbeat(nextBeatTime);
             nextBeatTime += BEAT_INTERVAL;
         }
 
-        // Timer Check
-        if ((Date.now() - timerStart) / 1000 >= SESSION_LIMIT) {
+        if (elapsed >= SESSION_LIMIT) {
             appState = 'END';
-            playGong();
-            // Freeze and Fade to White
             arcs.forEach(a => a.mesh.material.color.set(0xffffff));
-            core.material.color.set(0xffffff);
             document.getElementById('finalState').style.display = 'flex';
         }
     }
@@ -86,12 +59,19 @@ function animate() {
 }
 
 document.getElementById('startButton').addEventListener('click', () => {
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    audioCtx.resume();
-    nextBeatTime = audioCtx.currentTime;
-    timerStart = Date.now();
-    appState = 'ACTIVE';
-    document.getElementById('overlay').style.display = 'none';
+    const mainUI = document.getElementById('main-ui');
+    mainUI.classList.add('boot-flicker'); 
+    
+    setTimeout(() => {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        nextBeatTime = audioCtx.currentTime;
+        timerStart = Date.now();
+        appState = 'ACTIVE';
+        mainUI.classList.remove('boot-flicker');
+        document.body.classList.add('is-active'); 
+        document.getElementById('overlay').style.display = 'none';
+        document.getElementById('hud').style.display = 'block';
+    }, 400); 
 });
 
 animate();
