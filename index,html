@@ -3,62 +3,132 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>V-077XR // TEST PHASE</title>
+    <title>V-077XR // MASTER</title>
     <style>
         :root {
-            --glow: 0.2;
             --purple: #bc13fe;
-            --bg-color: #0d001a; /* SATA Indigo Start */
+            --bg-indigo: #0d001a;
+            --bg-gold: #4d3300;
         }
 
         body {
-            margin: 0; 
-            background-color: var(--bg-color); 
+            margin: 0;
+            background-color: var(--bg-indigo);
             color: #fff;
             font-family: 'Courier New', monospace;
-            display: flex; justify-content: center; align-items: center;
-            height: 100vh; overflow: hidden;
-            transition: background-color 30s linear; /* Smooth shift to Gold */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            transition: background-color 30s linear;
         }
 
-        .gold-state { --bg-color: #4d3300; } /* CODA Gold End */
+        /* The Gold State triggered by JS */
+        .gold-state { background-color: var(--bg-gold) !important; }
 
         #boot-screen, #vessel { text-align: center; width: 100%; }
         
-        /* High-visibility Gold Button */
         .gold-btn {
-            background: transparent; border: 2px solid #ffd700; color: #ffd700;
-            padding: 20px 40px; cursor: pointer; font-family: inherit;
-            font-weight: bold; font-size: 1.2rem; transition: 0.5s;
+            background: transparent;
+            border: 2px solid #ffd700;
+            color: #ffd700;
+            padding: 20px 40px;
+            margin: 10px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: bold;
+            font-size: 1.1rem;
+            transition: 0.3s;
         }
         .gold-btn:hover { background: #ffd700; color: #000; }
 
-        #re-enter { 
-            opacity: 0; visibility: hidden; transition: opacity 3s ease; 
-            color: #4af2a1; border-color: #4af2a1;
-        }
-        .visible { opacity: 1 !important; visibility: visible !important; }
-
-        /* Anchor Logo Ghostly Trace */
         #anchor-logo {
-            max-width: 300px;
-            transition: opacity 10s ease;
+            max-width: 250px;
+            transition: opacity 2s ease;
             filter: drop-shadow(0 0 15px var(--purple));
         }
-        .ghostly { opacity: 0.05; }
 
-        #timestamp { font-size: 1.5rem; margin-top: 20px; font-weight: bold; }
+        #timestamp { font-size: 1.5rem; transition: opacity 2s ease; }
+        
+        /* The Faded State for the end */
+        .faded { opacity: 0.15; }
+
+        #complete-msg { font-size: 1.8rem; margin: 20px 0; color: #ffd700; }
+        
+        #re-enter { 
+            opacity: 0; 
+            visibility: hidden; 
+            transition: opacity 2s ease; 
+            color: #4af2a1; 
+            border-color: #4af2a1; 
+        }
+
+        .visible { opacity: 1 !important; visibility: visible !important; }
         .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
     <div id="boot-screen">
-        <button class="gold-btn" onclick="launch()">ENTER NOS - VESSEL</button>
+        <button class="gold-btn" onclick="launch('nos')">ENTER NOS - VESSEL</button>
+        <button class="gold-btn" onclick="launch('sonic')">SONIC CALIBRATION</button>
     </div>
 
     <div id="vessel" class="hidden">
         <img id="anchor-logo" src="8419.png">
         <p id="timestamp">SYNC: 00:00:30</p>
-        <h2 id="complete-msg" class="hidden">NOS CALIBRATION COMPLETE</h2>
-        <button id="re-enter"
+        <h2 id="complete-msg" class="hidden"></h2>
+        <button id="re-enter" class="gold-btn" onclick="location.reload()">RESET - IGNITE - INTEGRATE</button>
+    </div>
+
+    <script>
+        let timeLeft = 30;
+        let currentMode = '';
+
+        function launch(mode) {
+            currentMode = mode;
+            
+            // UI Swap
+            document.getElementById('boot-screen').classList.add('hidden');
+            document.getElementById('vessel').classList.remove('hidden');
+            
+            // Start 30s CSS Transition
+            document.body.classList.add('gold-state');
+
+            const timer = setInterval(() => {
+                timeLeft--;
+                
+                // Update Display
+                let s = timeLeft;
+                document.getElementById('timestamp').innerText = `SYNC: 00:00:${s < 10 ? '0' + s : s}`;
+
+                // Audio Fade Logic (placeholder for where you'd put your audio code)
+                if (timeLeft === 2) {
+                    console.log("Audio fading...");
+                }
+
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    
+                    // Apply the "Faded" state to logo and timer
+                    document.getElementById('anchor-logo').classList.add('faded');
+                    document.getElementById('timestamp').classList.add('faded');
+
+                    // Set and Reveal static message
+                    const msg = document.getElementById('complete-msg');
+                    msg.innerText = (currentMode === 'nos') 
+                        ? "NOS VESSEL CALIBRATION COMPLETE" 
+                        : "DJ GC77XR Sonic Calibration Completed.";
+                    msg.classList.remove('hidden');
+
+                    // Fade in the Reset button below
+                    setTimeout(() => {
+                        document.getElementById('re-enter').classList.add('visible');
+                    }, 1000);
+                }
+            }, 1000);
+        }
+    </script>
+</body>
+</html>
