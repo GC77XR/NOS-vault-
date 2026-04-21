@@ -1,15 +1,26 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NOS-VESSEL</title>
+    <title>NOS-VESSEL | DJ GC77XR</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <canvas id="vesselCanvas"></canvas>
     
+    <div id="hud" style="display: none;">
+        <div id="status-line">STATUS: CALIBRATING // <span id="timer">11:00</span> // <span id="percent">0</span>% COMPLETE</div>
+    </div>
+
+    <div id="main-ui">
+        <div id="branding-container">
+            <div class="presented-by">MICRO HOUSE presents</div>
+            <div class="artist-name">DJ GC77XR</div>
+        </div>
+        <h1 id="vessel-title">NOS-VESSEL</h1>
+    </div>
+
     <div id="overlay">
         <button id="startButton">BEGIN CALIBRATION</button>
     </div>
