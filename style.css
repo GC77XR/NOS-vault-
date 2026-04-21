@@ -1,0 +1,31 @@
+body, html {
+    margin: 0; padding: 0;
+    width: 100%; height: 100%;
+    overflow: hidden; background-color: #000;
+    font-family: 'Courier New', monospace;
+}
+
+#vesselCanvas { display: block; }
+
+#overlay {
+    position: absolute; width: 100%; height: 100%;
+    display: flex; justify-content: center; align-items: center;
+    background: rgba(0, 0, 0, 0.9); z-index: 10;
+}
+
+.ui-box { text-align: center; color: #00ffff; border: 1px solid #00ffff; padding: 2rem; }
+
+button {
+    background: transparent; color: #00ffff; border: 1px solid #00ffff;
+    padding: 10px 20px; cursor: pointer; margin-top: 20px; font-weight: bold;
+}
+
+button:hover { background: #00ffff; color: #000; }
+
+#status-display {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    color: #9400D3; letter-spacing: 3px; opacity: 0;
+    transition: opacity 5s ease-in; text-align: center; pointer-events: none;
+}
+
+#status-display.visible { opacity: 1; }
