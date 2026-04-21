@@ -70,7 +70,7 @@ function animate(now) {
 
 document.getElementById('startButton').addEventListener('click', () => {
     document.getElementById('overlay').style.display = 'none';
-    isRunning = true;
+  Running = true;
     lastTime = performance.now();
 });
 
