@@ -1,78 +1,108 @@
-const CONFIG = { p: 2, q: 5, points: 32000, duration: 11 * 60 * 1000 };
+// 1. Global Configurations and Variables
+const CONFIG = { p: 2, q: 5, points: 32000 };
+let scene, camera, renderer, material, points;
+let isRunning = false;
+let totalElapsed = 0, lastTime = 0;
 
-let scene, camera, renderer, material;
-let totalElapsed = 0, lastTime = 0, isRunning = false;
-
+// 2. Shader Programs
 const vertexShader = `
     uniform float uTime;
     uniform float uProgress;
     attribute float t;
+    varying float vIntensity;
     void main() {
-        float p = 2.0; float q = 5.0; float r = 150.0;
+        float p = 2.0; float q = 5.0; float r = 2.0;
         float x = r * (cos(p * t) * (2.0 + cos(q * t)));
         float y = r * (sin(p * t) * (2.0 + cos(q * t)));
         float z = r * sin(q * t);
-        float intensity = pow(1.0 - uProgress, 3.0);
-        float nX = sin(t * 100.0 + uTime * 20.0) * intensity * 15.0;
-        float nY = cos(t * 120.0 + uTime * 15.0) * intensity * 15.0;
-        float nZ = sin(t * 80.0 + uTime * 25.0) * intensity * 15.0;
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(x + nX, y + nY, z + nZ, 1.0);
-        gl_PointSize = mix(8.0, 2.0, uProgress);
+        
+        vec3 pos = vec3(x, y, z);
+        float intensity = pow(1.0 - uProgress, 2.0);
+        vIntensity = intensity;
+        
+        vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
+        gl_Position = projectionMatrix * mvPosition;
+        gl_PointSize = mix(8.0, 2.0, uProgress) * (10.0 / -mvPosition.z);
     }
 `;
 
 const fragmentShader = `
     uniform float uProgress;
+    varying float vIntensity;
     void main() {
-        float dist = distance(gl_PointCoord, vec2(0.5));
-        float mask = 1.0 - smoothstep(0.0, 0.5, dist);
-        vec3 startColor = vec3(0.0, 1.0, 1.0);
-        vec3 endColor = vec3(0.58, 0.0, 0.83);
-        gl_FragColor = vec4(mix(startColor, endColor, uProgress), mask);
+        vec3 color = mix(vec3(0.0, 1.0, 1.0), vec3(1.0, 0.5, 0.0), uProgress);
+        gl_FragColor = vec4(color, vIntensity);
     }
 `;
 
+// 3. Initialization Function
 function init() {
     scene = new THREE.Scene();
-    const aspect = window.innerWidth / window.innerHeight;
-    const d = 300;
-    camera = new THREE.OrthographicCamera(-d * aspect, d * aspect, d, -d, 1, 1000);
-    camera.position.z = 500;
+    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.z = 15;
 
-    renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('vesselCanvas'), antialias: true });
+    const canvas = document.getElementById('vesselCanvas');
+    renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
     const geometry = new THREE.BufferGeometry();
     const tValues = new Float32Array(CONFIG.points);
-    for (let i = 0; i < CONFIG.points; i++) tValues[i] = (i / CONFIG.points) * Math.PI * 2;
+    for (let i = 0; i < CONFIG.points; i++) {
+        tValues[i] = (i / CONFIG.points) * Math.PI * 2;
+    }
     geometry.setAttribute('t', new THREE.BufferAttribute(tValues, 1));
 
     material = new THREE.ShaderMaterial({
-        uniforms: { uTime: { value: 0 }, uProgress: { value: 0 } },
-        vertexShader, fragmentShader, transparent: true, blending: THREE.AdditiveBlending
+        uniforms: {
+            uTime: { value: 0 },
+            uProgress: { value: 0 }
+        },
+        vertexShader,
+        fragmentShader,
+        transparent: true,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false
     });
 
-    scene.add(new THREE.Points(geometry, material));
+    points = new THREE.Points(geometry, material);
+    scene.add(points);
 }
 
+// 4. Animation Loop
 function animate(now) {
     if (!lastTime) lastTime = now;
     const delta = now - lastTime;
     lastTime = now;
-    if (isRunning && document.visibilityState === 'visible') totalElapsed += delta;
-    const progress = Math.min(totalElapsed / CONFIG.duration, 1.0);
-    material.uniforms.uProgress.value = progress;
-    material.uniforms.uTime.value = now / 1000;
-    if (progress >= 1.0) document.getElementById('status-display').classList.add('visible');
+
+    if (isRunning) {
+        totalElapsed += delta;
+        const progress = Math.min(totalElapsed / 660000, 1.0); // 11 minute countdown
+        material.uniforms.uProgress.value = progress;
+        material.uniforms.uTime.value = now * 0.001;
+        
+        points.rotation.y += 0.002;
+        points.rotation.z += 0.001;
+    }
+
     renderer.render(scene, camera);
     requestAnimationFrame(animate);
 }
 
+// 5. Execution and Event Listeners
 document.getElementById('startButton').addEventListener('click', () => {
     document.getElementById('overlay').style.display = 'none';
-  Running = true;
+    isRunning = true;
     lastTime = performance.now();
 });
 
+// Handle Window Resize
+window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+// Start the System
 init();
 requestAnimationFrame(animate);
