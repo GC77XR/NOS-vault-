@@ -1,28 +1,21 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>V-077XR // NOS VESSEL</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-    <div id="boot-screen">
-        <button id="start-btn">START NOS-VESSEL CALIBRATION</button>
+<div id="boot-screen">
+    <div id="boot-menu">
+        <button id="btn-nos">MICRO HAUS - NEURAL OPERATING SYSTEM (NOS) VESSEL</button>
+        <button id="btn-sonic">DJ GC77XR - SONIC CALIBRATION</button>
     </div>
+</div>
 
-    <div id="vessel-container" class="hidden">
+<div id="vessel" class="hidden">
+    <div id="vessel-container">
         <div id="media-stage">
-            <img id="main-asset" src="8419.png" alt="NOS Logo">
-            <img src="7996.png" alt="Vessel Image" style="width:200px;">
+            <img id="asset-nos" src="8419.png" class="hidden">
+            
+            <img id="asset-sonic" src="8883.png" class="hidden">
         </div>
-
+        
         <div id="data-log">
-            <div id="serial-id">SESSION_#000000</div>
-            <div id="timestamp">SYNC: 00:00:00</div>
-            <div id="exit-cmd">> TERMINATE_SESSION</div>
+            <p id="timestamp">SYNC: 00:00:00</p>
+            <p id="status">INITIALIZING CALIBRATION...</p>
         </div>
     </div>
-
-    <script src="script.js"></script>
-</body>
-</html>
+</div>
