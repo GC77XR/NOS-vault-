@@ -1,75 +1,105 @@
-let totalSeconds = 0;
-let timerInterval, heartbeatInterval;
+// --- 1. GLOBAL STATE ---
+let audioCtx;
+let masterGain;
+let timerInterval;
+let timeLeft = 660;
 
-// Selectors
-const bootScreen = document.getElementById('boot-screen');
-const vessel = document.getElementById('vessel');
-const vesselContainer = document.getElementById('vessel-container');
-const nosAsset = document.getElementById('asset-nos');
-const sonicAsset = document.getElementById('asset-sonic');
-const timestampDisplay = document.getElementById('timestamp');
-const reEnterBtn = document.getElementById('re-enter-btn');
+// --- 2. AUDIO ENGINE ---
+function initAudio() {
+    if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        masterGain = audioCtx.createGain();
+        masterGain.connect(audioCtx.destination);
+    }
+}
 
-function startVessel(mode) {
-    // Reset state
-    clearInterval(timerInterval);
-    clearInterval(heartbeatInterval);
-    window.speechSynthesis.cancel();
-    totalSeconds = 0;
-    vessel.classList.remove('fade-out-active');
-
-    // UI Toggle
-    bootScreen.classList.add('hidden');
-    vessel.classList.remove('hidden');
-
-    if (mode === 'nos') {
-        vesselContainer.classList.remove('interceptor-bg');
-        nosAsset.classList.remove('hidden');
-        nosAsset.classList.add('nos-breathing');
-        sonicAsset.classList.add('hidden');
-        sonicAsset.classList.remove('sonic-core');
+function playPulse(type, time) {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    
+    if (type === 'nos') {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(60, time); // Deep Bass
     } else {
-        vesselContainer.classList.add('interceptor-bg');
-        sonicAsset.classList.remove('hidden');
-        sonicAsset.classList.add('sonic-core');
-        nosAsset.classList.add('hidden');
-        nosAsset.classList.remove('nos-breathing');
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(880, time); // High Ping
     }
 
-    timerInterval = setInterval(updateDataLog, 1000);
+    gain.gain.setValueAtTime(0.3, time);
+    gain.gain.exponentialRampToValueAtTime(0.0001, time + 0.1);
+
+    osc.connect(gain);
+    gain.connect(masterGain);
+    osc.start(time);
+    osc.stop(time + 0.1);
 }
 
-function updateDataLog() {
-    totalSeconds++;
+// --- 3. CORE LOGIC ---
+function startVessel(mode) {
+    initAudio();
+    const now = audioCtx.currentTime;
     
-    if (totalSeconds >= 660) {
-        terminateSession();
-        return;
-    }
+    // UI Resets
+    document.getElementById('boot-screen').classList.add('hidden');
+    document.getElementById('vessel').classList.remove('hidden');
+    masterGain.gain.setValueAtTime(1, now);
 
-    const mins = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
-    const secs = (totalSeconds % 60).toString().padStart(2, '0');
-    timestampDisplay.innerText = `SYNC: 00:${mins}:${secs}`;
-}
+    if (mode === 'sonic') {
+        document.getElementById('asset-sonic').classList.remove('hidden');
+        document.getElementById('asset-nos').classList.add('hidden');
+        document.getElementById('vessel').classList.add('sonic-theme');
 
-function terminateSession() {
-    clearInterval(timerInterval);
-    clearInterval(heartbeatInterval);
-    
-    // 1s delay before fade begins
-    setTimeout(() => {
-        vessel.classList.add('fade-out-active');
+        // Sonic Burst (Rapid Pings)
+        for (let i = 0; i < 10; i++) {
+            playPulse('sonic', now + (i * 0.05));
+        }
+        // Start steady 236 BPM rhythm after burst
+        scheduleLoop('sonic', now + 0.5);
+    } else {
+        document.getElementById('asset-nos').classList.remove('hidden');
+        document.getElementById('asset-sonic').classList.add('hidden');
+        document.getElementById('vessel').classList.remove('sonic-theme');
         
-        // 2s fade duration
-        setTimeout(() => {
-            vessel.classList.add('hidden');
-            document.getElementById('interface').classList.remove('hidden');
-            reEnterBtn.classList.remove('hidden');
-        }, 2000);
+        // Start 118 BPM heartbeat
+        scheduleLoop('nos', now);
+    }
+
+    runTimer();
+}
+
+function scheduleLoop(type, startTime) {
+    const interval = (type === 'nos') ? 0.508 : 0.254;
+    for (let i = 0; i < 100; i++) {
+        playPulse(type, startTime + (i * interval));
+    }
+}
+
+function runTimer() {
+    timerInterval = setInterval(() => {
+        timeLeft--;
+        updateDisplay();
+        if (timeLeft === 2) startFinalFade();
+        if (timeLeft <= 0) endSession();
     }, 1000);
 }
 
-// Event Listeners
+function updateDisplay() {
+    const m = Math.floor(timeLeft / 60);
+    const s = timeLeft % 60;
+    document.getElementById('timestamp').innerText = `SYNC: 00:${m < 10 ? '0'+m : m}:${s < 10 ? '0'+s : s}`;
+}
+
+function startFinalFade() {
+    document.getElementById('vessel').style.opacity = '0';
+    masterGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 2);
+}
+
+function endSession() {
+    clearInterval(timerInterval);
+    document.getElementById('re-enter-btn').classList.remove('hidden');
+}
+
+// --- 4. EVENT LISTENERS ---
 document.getElementById('btn-nos').addEventListener('click', () => startVessel('nos'));
 document.getElementById('btn-sonic').addEventListener('click', () => startVessel('sonic'));
-reEnterBtn.addEventListener('click', () => window.location.reload());
+document.getElementById('re-enter-btn').addEventListener('click', () => location.reload());
