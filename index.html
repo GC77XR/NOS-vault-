@@ -4,46 +4,161 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>V-077XR // MASTER VESSEL</title>
-    <link rel="stylesheet" href="style.css">
+    <style>
+        :root {
+            --glow: 0.2;
+            --purple: #bc13fe;
+        }
+
+        body {
+            margin: 0; background: #000; color: #fff;
+            font-family: 'Courier New', monospace;
+            display: flex; justify-content: center; align-items: center;
+            height: 100vh; overflow: hidden;
+        }
+
+        /* UI Elements */
+        #boot-screen, #vessel { text-align: center; width: 100%; }
+        button {
+            background: transparent; border: 1px solid #fff; color: #fff;
+            padding: 15px 30px; cursor: pointer; font-family: inherit;
+            margin: 10px; transition: 0.5s; text-transform: uppercase;
+        }
+        button:hover { background: #fff; color: #000; }
+        
+        #re-enter { 
+            opacity: 0; transition: opacity 2s ease; 
+            margin-top: 20px; border-color: #4af2a1; color: #4af2a1; 
+        }
+        #re-enter.visible { opacity: 1; }
+
+        /* 3D Geometry Math */
+        .octahedron-wrapper { perspective: 1000px; transition: opacity 2s; }
+        .octahedron {
+            position: relative; width: 200px; height: 200px;
+            transform-style: preserve-3d; animation: rotate 10s infinite linear;
+        }
+        .side {
+            position: absolute; width: 0; height: 0;
+            border-left: 100px solid transparent; border-right: 100px solid transparent;
+            border-bottom: 173.2px solid rgba(188, 19, 254, var(--glow));
+            border-bottom-color: var(--purple);
+            filter: drop-shadow(0 0 calc(var(--glow) * 25px) var(--purple));
+            transform-origin: 50% 0%;
+        }
+
+        .t-front { transform: rotateY(0deg) rotateX(35.26deg); }
+        .t-right { transform: rotateY(90deg) rotateX(35.26deg); }
+        .t-back { transform: rotateY(180deg) rotateX(35.26deg); }
+        .t-left { transform: rotateY(270deg) rotateX(35.26deg); }
+        .b-front { transform: translateY(173.2px) rotateY(0deg) rotateX(-35.26deg) rotateZ(180deg); }
+        .b-right { transform: translateY(173.2px) rotateY(90deg) rotateX(-35.26deg) rotateZ(180deg); }
+        .b-back { transform: translateY(173.2px) rotateY(180deg) rotateX(-35.26deg) rotateZ(180deg); }
+        .b-left { transform: translateY(173.2px) rotateY(270deg) rotateX(-35.26deg) rotateZ(180deg); }
+
+        @keyframes rotate { from { transform: rotateY(0); } to { transform: rotateY(360deg); } }
+        
+        #asset-nos { max-width: 300px; transition: opacity 2s; }
+        #timestamp { font-size: 1.2rem; margin-top: 30px; letter-spacing: 2px; }
+        .sonic-theme #timestamp { color: var(--purple); }
+        .hidden { display: none !important; }
+    </style>
 </head>
 <body>
 
     <div id="boot-screen">
-        <div id="boot-menu">
-            <button id="btn-nos">MICRO HAUS - NEURAL OPERATING SYSTEM (NOS) VESSEL</button>
-            <button id="btn-sonic">DJ GC77XR - SONIC CALIBRATION</button>
-        </div>
+        <button onclick="launch('nos')">NOS VESSEL // 118 BPM</button><br>
+        <button onclick="launch('sonic')">SONIC CALIBRATION // HIGH ENERGY</button>
     </div>
 
     <div id="vessel" class="hidden">
-        <div id="vessel-container">
-            
-            <div id="media-stage">
-                <img id="asset-nos" src="8419.png" class="hidden">
-                
-                <div id="asset-sonic" class="octahedron-wrapper hidden">
-                    <div class="octahedron">
-                        <div class="side t-front"></div>
-                        <div class="side t-back"></div>
-                        <div class="side t-left"></div>
-                        <div class="side t-right"></div>
-                        <div class="side b-front"></div>
-                        <div class="side b-back"></div>
-                        <div class="side b-left"></div>
-                        <div class="side b-right"></div>
-                    </div>
-                </div>
+        <img id="asset-nos" src="8419.png" class="hidden">
+        
+        <div id="asset-sonic" class="octahedron-wrapper hidden">
+            <div class="octahedron">
+                <div class="side t-front"></div><div class="side t-right"></div>
+                <div class="side t-back"></div><div class="side t-left"></div>
+                <div class="side b-front"></div><div class="side b-right"></div>
+                <div class="side b-back"></div><div class="side b-left"></div>
             </div>
-
-            <div id="data-log">
-                <p id="timestamp">SYNC: 00:00:00</p>
-                <p id="status">INITIALIZING CALIBRATION...</p>
-            </div>
-            
-            <button id="re-enter-btn" class="hidden">RE-ENTER</button>
         </div>
+
+        <p id="timestamp">SYNC: 00:11:00</p>
+        <button id="re-enter" onclick="location.reload()">RE-ENTER</button>
     </div>
 
-    <script src="script.js"></script>
+    <script>
+        let audioCtx, masterGain, timeLeft = 660;
+
+        function launch(mode) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            masterGain = audioCtx.createGain();
+            masterGain.connect(audioCtx.destination);
+
+            document.getElementById('boot-screen').classList.add('hidden');
+            document.getElementById('vessel').classList.remove('hidden');
+            
+            if(mode === 'nos') {
+                document.getElementById('asset-nos').classList.remove('hidden');
+            } else {
+                document.getElementById('asset-sonic').classList.remove('hidden');
+                document.getElementById('vessel').classList.add('sonic-theme');
+            }
+
+            const interval = mode === 'nos' ? 0.508 : 0.254;
+            loop(mode, interval);
+            clock();
+        }
+
+        function play(mode, time) {
+            const osc = audioCtx.createOscillator();
+            const g = audioCtx.createGain();
+            
+            // Triple-Layer NOS (Thump + Kick) or Sharp Sonic Ping
+            osc.type = mode === 'nos' ? 'sine' : 'square';
+            osc.frequency.setValueAtTime(mode === 'nos' ? 55 : 880, time);
+
+            g.gain.setValueAtTime(0, time);
+            g.gain.linearRampToValueAtTime(0.3, time + 0.01);
+            g.gain.exponentialRampToValueAtTime(0.0001, time + 0.15);
+
+            osc.connect(g); g.connect(masterGain);
+            osc.start(time); osc.stop(time + 0.2);
+
+            // Visual Glow Sync
+            const delay = (time - audioCtx.currentTime) * 1000;
+            setTimeout(() => {
+                document.documentElement.style.setProperty('--glow', '1.0');
+                setTimeout(() => document.documentElement.style.setProperty('--glow', '0.2'), 100);
+            }, delay);
+        }
+
+        function loop(mode, interval) {
+            let next = audioCtx.currentTime;
+            for(let i=0; i<3000; i++) {
+                play(mode, next);
+                // Sonic Gallop logic
+                next += (mode === 'sonic' && i % 2 === 0) ? interval * 0.6 : interval;
+            }
+        }
+
+        function clock() {
+            const timer = setInterval(() => {
+                timeLeft--;
+                let m = Math.floor(timeLeft / 60), s = timeLeft % 60;
+                document.getElementById('timestamp').innerText = `SYNC: 00:${m}:${s<10?'0'+s:s}`;
+
+                if(timeLeft === 2) {
+                    document.getElementById('vessel').style.opacity = '0';
+                    masterGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 2);
+                }
+                if(timeLeft <= 0) {
+                    clearInterval(timer);
+                    // 3-second silence before slow fade-in
+                    setTimeout(() => document.getElementById('re-enter').classList.add('visible'), 3000);
+                }
+            }, 1000);
+        }
+    </script>
 </body>
 </html>
