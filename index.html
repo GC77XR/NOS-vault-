@@ -3,19 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NOS-VESSEL | Mobile Core</title>
+    <title>NOS-VESSEL</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="overlay">
-        <div class="display-box">
-            <h1>NOS-VESSEL</h1>
-            <p>System: DJ GC77XR Core</p>
-            <button id="startButton">BEGIN CALIBRATION</button>
-        </div>
-    </div>
-    
     <canvas id="vesselCanvas"></canvas>
+    
+    <div id="overlay">
+        <button id="startButton">BEGIN CALIBRATION</button>
+    </div>
+
+    <div id="finalState" style="display: none;">
+        <button id="resetButton">RESET - IGNITE - INTEGRATE</button>
+    </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="script.js"></script>
