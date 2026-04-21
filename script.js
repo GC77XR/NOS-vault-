@@ -1,54 +1,86 @@
-// NOS-VESSEL EMERGENCY FAILSAFE CORE
-const canvas = document.getElementById('vesselCanvas');
-const ctx = canvas.getContext('2d');
+// --- CONFIGURATION ---
+const BPM = 118;
+const BEAT_DURATION = 60 / BPM; 
+const TOTAL_SESSION_TIME = 11 * 60; // 660 seconds
+let audioCtx, nextBeatTime, timerStart;
 let isRunning = false;
-let startTime = 0;
 
-// Set Canvas Size
-function resize() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+// --- AUDIO SYNTHESIS ---
+function playHeartbeat(time) {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.frequency.value = 50; // Pure Sub-Bass
+    gain.gain.setValueAtTime(0.5, time);
+    gain.gain.exponentialRampToValueAtTime(0.001, time + 0.1);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start(time);
+    osc.stop(time + 0.1);
 }
-window.addEventListener('resize', resize);
-resize();
 
-function drawCore(time) {
-    if (!isRunning) return;
-    
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    const centerX = canvas.width / 2;
-    const centerY = canvas.height / 2;
-    const radius = Math.min(centerX, centerY) * 0.6;
+function playChirp(time) {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.frequency.setValueAtTime(200, time);
+    osc.frequency.exponentialRampToValueAtTime(800, time + 0.1);
+    gain.gain.setValueAtTime(0.2, time);
+    gain.gain.exponentialRampToValueAtTime(0.001, time + 0.1); // Ping Fade
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start(time);
+    osc.stop(time + 0.1);
+}
 
-    // 1. Draw Outer Tech Rings
-    ctx.strokeStyle = '#00ffff';
-    ctx.lineWidth = 2;
-    
-    for(let i = 0; i < 3; i++) {
-        ctx.beginPath();
-        ctx.arc(centerX, centerY, radius - (i * 30), time * (0.001 * (i+1)), time * 0.001 + (Math.PI * 1.5));
-        ctx.stroke();
+function playGong() {
+    const frequencies = [110, 143, 210]; // Additive Gong Sound
+    frequencies.forEach(f => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.frequency.value = f;
+        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 4);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 4);
+    });
+}
+
+// --- ENGINE LOGIC ---
+function scheduler() {
+    while (nextBeatTime < audioCtx.currentTime + 0.1) {
+        playHeartbeat(nextBeatTime);
+        // Play chirp every 4 beats
+        if (Math.round(nextBeatTime / BEAT_DURATION) % 4 === 0) {
+            playChirp(nextBeatTime);
+        }
+        nextBeatTime += BEAT_DURATION;
     }
+    
+    // Check 11-minute Timer
+    const elapsed = (Date.now() - timerStart) / 1000;
+    if (elapsed >= TOTAL_SESSION_TIME) {
+        stopSession();
+    } else {
+        requestAnimationFrame(scheduler);
+    }
+}
 
-    // 2. Draw Pulsing Data Core
-    const pulse = Math.sin(time * 0.005) * 10;
-    ctx.fillStyle = 'rgba(0, 255, 255, 0.2)';
-    ctx.beginPath();
-    ctx.arc(centerX, centerY, 50 + pulse, 0, Math.PI * 2);
-    ctx.fill();
-
-    // 3. Draw Scanning "Vessel" Lines
-    ctx.strokeStyle = 'rgba(0, 255, 255, 0.5)';
-    ctx.beginPath();
-    ctx.moveTo(0, centerY + Math.sin(time * 0.002) * 200);
-    ctx.lineTo(canvas.width, centerY + Math.sin(time * 0.002) * 200);
-    ctx.stroke();
-
-    requestAnimationFrame(drawCore);
+function stopSession() {
+    isRunning = false;
+    playGong();
+    // Reveal Reset-Ignite-Integrate Button
+    const btn = document.getElementById('finalButton');
+    btn.style.display = 'block';
+    // Logic to fade vessel to white goes here
 }
 
 document.getElementById('startButton').addEventListener('click', () => {
-    document.getElementById('overlay').style.display = 'none';
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    audioCtx.resume();
+    timerStart = Date.now();
+    nextBeatTime = audioCtx.currentTime;
     isRunning = true;
-    requestAnimationFrame(drawCore);
+    scheduler();
+    document.getElementById('overlay').style.display = 'none';
 });
