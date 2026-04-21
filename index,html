@@ -3,161 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>V-077XR // MASTER SYSTEM</title>
+    <title>V-077XR // TEST PHASE</title>
     <style>
         :root {
-            --pulse-glow: 0.2;
-            --neon-purple: #bc13fe;
+            --glow: 0.2;
+            --purple: #bc13fe;
+            --bg-color: #0d001a; /* SATA Indigo Start */
         }
 
         body {
-            margin: 0; background: #000; color: #fff;
+            margin: 0; 
+            background-color: var(--bg-color); 
+            color: #fff;
             font-family: 'Courier New', monospace;
             display: flex; justify-content: center; align-items: center;
             height: 100vh; overflow: hidden;
+            transition: background-color 30s linear; /* Smooth shift to Gold */
         }
 
-        #boot-screen { text-align: center; }
-        button {
-            background: transparent; border: 1px solid #fff; color: #fff;
-            padding: 15px 25px; cursor: pointer; font-family: inherit;
-            margin: 10px; transition: 0.3s;
-        }
-        button:hover { background: #fff; color: #000; }
+        .gold-state { --bg-color: #4d3300; } /* CODA Gold End */
 
-        #vessel { 
-            width: 100%; height: 100%; display: flex; 
-            flex-direction: column; justify-content: center; align-items: center;
-            transition: opacity 2s ease; 
-        }
-
-        /* 3D Octahedron Geometry */
-        .octahedron-wrapper { perspective: 1000px; }
-        .octahedron {
-            position: relative; width: 200px; height: 200px;
-            transform-style: preserve-3d;
-            animation: rotate 8s infinite linear;
-        }
-        .side {
-            position: absolute; width: 0; height: 0;
-            border-left: 100px solid transparent; border-right: 100px solid transparent;
-            border-bottom: 173.2px solid rgba(188, 19, 254, var(--pulse-glow));
-            border-bottom-color: var(--neon-purple);
-            filter: drop-shadow(0 0 calc(var(--pulse-glow) * 20px) var(--neon-purple));
-            transform-origin: 50% 0%;
-        }
-
-        /* 3D Transforms */
-        .t-front { transform: rotateY(0deg) rotateX(35.26deg); }
-        .t-right { transform: rotateY(90deg) rotateX(35.26deg); }
-        .t-back { transform: rotateY(180deg) rotateX(35.26deg); }
-        .t-left { transform: rotateY(270deg) rotateX(35.26deg); }
-        .b-front { transform: translateY(173.2px) rotateY(0deg) rotateX(-35.26deg) rotateZ(180deg); }
-        .b-right { transform: translateY(173.2px) rotateY(90deg) rotateX(-35.26deg) rotateZ(180deg); }
-        .b-back { transform: translateY(173.2px) rotateY(180deg) rotateX(-35.26deg) rotateZ(180deg); }
-        .b-left { transform: translateY(173.2px) rotateY(270deg) rotateX(-35.26deg) rotateZ(180deg); }
-
-        @keyframes rotate { from { transform: rotateY(0deg); } to { transform: rotateY(360deg); } }
-
-        /* Final State Styles */
-        #re-enter { 
-            opacity: 0; 
-            visibility: hidden; 
-            transition: opacity 3s ease; 
-            border-color: #4af2a1; 
-            color: #4af2a1; 
-        }
-        #re-enter.visible { opacity: 1; visibility: visible; }
+        #boot-screen, #vessel { text-align: center; width: 100%; }
         
+        /* High-visibility Gold Button */
+        .gold-btn {
+            background: transparent; border: 2px solid #ffd700; color: #ffd700;
+            padding: 20px 40px; cursor: pointer; font-family: inherit;
+            font-weight: bold; font-size: 1.2rem; transition: 0.5s;
+        }
+        .gold-btn:hover { background: #ffd700; color: #000; }
+
+        #re-enter { 
+            opacity: 0; visibility: hidden; transition: opacity 3s ease; 
+            color: #4af2a1; border-color: #4af2a1;
+        }
+        .visible { opacity: 1 !important; visibility: visible !important; }
+
+        /* Anchor Logo Ghostly Trace */
+        #anchor-logo {
+            max-width: 300px;
+            transition: opacity 10s ease;
+            filter: drop-shadow(0 0 15px var(--purple));
+        }
+        .ghostly { opacity: 0.05; }
+
+        #timestamp { font-size: 1.5rem; margin-top: 20px; font-weight: bold; }
         .hidden { display: none !important; }
-        #timestamp { margin-top: 50px; font-size: 1.2rem; }
     </style>
 </head>
 <body>
 
     <div id="boot-screen">
-        <button onclick="start('nos')">NOS VESSEL (118 BPM)</button>
-        <button onclick="start('sonic')">SONIC CALIBRATION</button>
+        <button class="gold-btn" onclick="launch()">ENTER NOS - VESSEL</button>
     </div>
 
     <div id="vessel" class="hidden">
-        <div id="asset-sonic" class="octahedron-wrapper">
-            <div class="octahedron" id="shape">
-                <div class="side t-front"></div><div class="side t-right"></div>
-                <div class="side t-back"></div><div class="side t-left"></div>
-                <div class="side b-front"></div><div class="side b-right"></div>
-                <div class="side b-back"></div><div class="side b-left"></div>
-            </div>
-        </div>
-        <p id="timestamp">SYNC: 00:11:00</p>
-        <button id="re-enter" onclick="location.reload()">RE-ENTER</button>
-    </div>
-
-    <script>
-        let audioCtx, masterGain, timeLeft = 660; 
-
-        function start(mode) {
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            masterGain = audioCtx.createGain();
-            masterGain.connect(audioCtx.destination);
-            
-            document.getElementById('boot-screen').classList.add('hidden');
-            document.getElementById('vessel').classList.remove('hidden');
-
-            const interval = mode === 'nos' ? 0.508 : 0.254;
-            schedulePulses(mode, interval);
-            runTimer();
-        }
-
-        function playTone(mode, time) {
-            const osc = audioCtx.createOscillator();
-            const g = audioCtx.createGain();
-            
-            osc.frequency.setValueAtTime(mode === 'nos' ? 55 : 880, time);
-            osc.type = mode === 'nos' ? 'sine' : 'square';
-
-            g.gain.setValueAtTime(0, time);
-            g.gain.linearRampToValueAtTime(0.3, time + 0.01);
-            g.gain.exponentialRampToValueAtTime(0.0001, time + 0.2);
-
-            osc.connect(g); g.connect(masterGain);
-            osc.start(time); osc.stop(time + 0.2);
-
-            // Visual Pulse Sync
-            const delay = (time - audioCtx.currentTime) * 1000;
-            setTimeout(() => {
-                document.documentElement.style.setProperty('--pulse-glow', '1.0');
-                setTimeout(() => document.documentElement.style.setProperty('--pulse-glow', '0.2'), 100);
-            }, delay);
-        }
-
-        function schedulePulses(mode, interval) {
-            let nextTime = audioCtx.currentTime;
-            for(let i=0; i<3000; i++) {
-                playTone(mode, nextTime);
-                nextTime += (mode === 'sonic' && i % 2 === 0) ? interval * 0.5 : interval;
-            }
-        }
-
-        function runTimer() {
-            const timer = setInterval(() => {
-                timeLeft--;
-                let m = Math.floor(timeLeft / 60), s = timeLeft % 60;
-                document.getElementById('timestamp').innerText = `SYNC: 00:${m}:${s<10?'0'+s:s}`;
-                
-                if(timeLeft === 2) {
-                    document.getElementById('vessel').style.opacity = '0';
-                    masterGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 2);
-                }
-                if(timeLeft <= 0) {
-                    clearInterval(timer);
-                    // 3 seconds of silence, then slow fade of the button
-                    setTimeout(() => {
-                        document.getElementById('re-enter').classList.add('visible');
-                    }, 3000);
-                }
-            }, 1000);
-        }
-    </script>
-</body>
-</html>
+        <img id="anchor-logo" src="8419.png">
+        <p id="timestamp">SYNC: 00:00:30</p>
+        <h2 id="complete-msg" class="hidden">NOS CALIBRATION COMPLETE</h2>
+        <button id="re-enter"
