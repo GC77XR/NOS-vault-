@@ -1,121 +1,66 @@
-:root {
-    --indigo: #1a0033;
-    --gold: #ffcf40;
-}
-
+/* Layout & Basics */
 body {
-    background: #000;
     margin: 0;
-    overflow: hidden;
-    font-family: 'Courier New', monospace;
+    background-color: #000;
+    color: #fff;
+    font-family: 'Courier New', Courier, monospace;
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
+    overflow: hidden;
 }
 
-#boot-screen {
-    position: fixed;
-    inset: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: #000;
-    z-index: 100;
+#vessel {
+    opacity: 1;
+    transition: opacity 2s ease-in-out;
+    width: 100%;
+    height: 100%;
 }
 
-#start-btn {
-    background: transparent;
-    border: 1px solid var(--gold);
-    color: var(--gold);
-    padding: 20px 40px;
-    letter-spacing: 3px;
-    cursor: pointer;
-    transition: all 0.3s ease;
+.hidden {
+    display: none !important;
 }
-
-#start-btn:hover {
-    background: var(--gold);
-    color: #000;
-}
-
-.hidden { 
-    display: none !important; 
-}
-
-/* --- VESSEL CONTAINER --- */
 
 #vessel-container {
+    text-align: center;
     width: 100%;
-    height: 100vh;
+    height: 100%;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    background: var(--indigo);
 }
 
-#media-stage {
-    position: relative;
-    width: 400px; 
-    height: 400px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+/* Interceptor Background */
+.interceptor-bg {
+    background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), 
+                url('7996.png') no-repeat center center;
+    background-size: cover;
 }
 
-/* --- CROSS-FADE & PULSE LOGIC --- */
+/* --- Animation Engine --- */
 
-#media-stage img {
-    position: absolute; 
-    max-width: 100%;
-    transition: opacity 3s ease-in-out; 
+@keyframes spin-pulse {
+    0% { transform: rotate(0deg) scale(1); }
+    50% { transform: rotate(180deg) scale(1.05); }
+    100% { transform: rotate(360deg) scale(1); }
 }
 
-.visible { 
-    opacity: 1; 
+.sonic-core {
+    animation: spin-pulse 0.508s linear infinite;
 }
 
-.faded { 
-    opacity: 0; 
+@keyframes breathe {
+    0% { opacity: 0.7; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.02); }
+    100% { opacity: 0.7; transform: scale(1); }
 }
 
-.pulse-lub {
-    animation: heartbeat-lub 0.508s ease-in-out infinite;
+.nos-breathing {
+    animation: breathe 4s ease-in-out infinite;
 }
 
-.pulse-dub {
-    animation: heartbeat-dub 0.508s ease-in-out infinite;
-    animation-delay: 0.15s;
-}
-
-@keyframes heartbeat-lub {
-    0%, 100% { transform: scale(1); filter: brightness(100%); }
-    20% { transform: scale(1.05); filter: brightness(130%); }
-}
-
-@keyframes heartbeat-dub {
-    0%, 100% { transform: scale(1); filter: brightness(100%); }
-    20% { transform: scale(1.05); filter: brightness(130%); }
-}
-
-/* --- DATA LOG --- */
-
-#data-log {
-    margin-top: 20px;
-    color: var(--gold);
-    text-align: center;
-    font-size: 14px;
-    line-height: 1.6;
-}
-
-#exit-cmd {
-    cursor: pointer;
-    margin-top: 10px;
-    opacity: 0.8;
-}
-
-#exit-cmd:hover {
-    opacity: 1;
-    text-decoration: underline;
+.fade-out-active {
+    opacity: 0 !important;
 }
