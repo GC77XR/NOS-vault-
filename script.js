@@ -1,17 +1,16 @@
-// 1. Global System Configuration
-const CONFIG = { p: 2, q: 5, points: 32000 };
+// 1. Global Setup
+const CONFIG = { points: 32000 };
 let scene, camera, renderer, material, points;
 let isRunning = false;
 let totalElapsed = 0, lastTime = 0;
 
-// 2. Optimized Shaders for Mobile Performance
+// 2. Mobile-Optimized Shaders
 const vertexShader = `
     uniform float uTime;
     uniform float uProgress;
     attribute float t;
     varying float vIntensity;
     void main() {
-        // Torus Knot math for the Vessel Core
         float r = 2.0;
         float x = r * (cos(2.0 * t) * (2.0 + cos(5.0 * t)));
         float y = r * (sin(2.0 * t) * (2.0 + cos(5.0 * t)));
@@ -23,7 +22,7 @@ const vertexShader = `
         vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
         gl_Position = projectionMatrix * mvPosition;
         
-        // Point size scales based on distance (better for phone screens)
+        // Size attenuation: keeps points visible on small mobile screens
         gl_PointSize = mix(6.0, 2.0, uProgress) * (20.0 / -mvPosition.z);
     }
 `;
@@ -37,26 +36,19 @@ const fragmentShader = `
     }
 `;
 
-// 3. System Initialization
+// 3. Initialization Logic
 function init() {
     scene = new THREE.Scene();
     
-    // Field of View adjusted for mobile (75 degrees)
+    // Adjusted FOV for mobile vertical viewing
     camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.z = 25; // Pull back so the core fits on narrow phone screens
+    camera.position.z = 25; 
 
     const canvas = document.getElementById('vesselCanvas');
-    renderer = new THREE.WebGLRenderer({ 
-        canvas: canvas, 
-        antialias: true, 
-        alpha: true 
-    });
-    
-    // Handle High-DPI phone screens (Retina/OLED)
+    renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(window.innerWidth, window.innerHeight);
 
-    // Geometry Generation
     const geometry = new THREE.BufferGeometry();
     const tValues = new Float32Array(CONFIG.points);
     for (let i = 0; i < CONFIG.points; i++) {
@@ -65,10 +57,7 @@ function init() {
     geometry.setAttribute('t', new THREE.BufferAttribute(tValues, 1));
 
     material = new THREE.ShaderMaterial({
-        uniforms: {
-            uTime: { value: 0 },
-            uProgress: { value: 0 }
-        },
+        uniforms: { uTime: { value: 0 }, uProgress: { value: 0 } },
         vertexShader,
         fragmentShader,
         transparent: true,
@@ -80,7 +69,7 @@ function init() {
     scene.add(points);
 }
 
-// 4. Engine Loop
+// 4. Animation Engine
 function animate(now) {
     if (!lastTime) lastTime = now;
     const delta = now - lastTime;
@@ -88,31 +77,39 @@ function animate(now) {
 
     if (isRunning) {
         totalElapsed += delta;
-        const progress = Math.min(totalElapsed / 660000, 1.0); // 11 min
+        const progress = Math.min(totalElapsed / 660000, 1.0);
         material.uniforms.uProgress.value = progress;
         material.uniforms.uTime.value = now * 0.001;
         
         points.rotation.y += 0.003;
-        points.rotation.z += 0.001;
     }
 
     renderer.render(scene, camera);
     requestAnimationFrame(animate);
 }
 
-// 5. Mobile & Desktop Listeners
+// 5. Activation & Resize Listeners
+const startButton = document.getElementById('startButton');
+
+const startSequence = () => {
+    document.getElementById('overlay').style.display = 'none';
+    isRunning = true;
+    lastTime = performance.now();
+};
+
+// Double listener for desktop click and mobile touch
+startButton.addEventListener('click', startSequence);
+startButton.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    startSequence();
+});
+
 window.addEventListener('resize', () => {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
-document.getElementById('startButton').addEventListener('click', () => {
-    document.getElementById('overlay').style.display = 'none';
-    isRunning = true;
-    lastTime = performance.now();
-});
-
-// Launch Sequence
+// Execute Launch
 init();
 requestAnimationFrame(animate);
