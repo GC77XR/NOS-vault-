@@ -3,149 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>V-077XR // MASTER ENGINE</title>
-    <style>
-        :root {
-            --purple: #bc13fe;
-            --bg-indigo: #0d001a;
-            --bg-gold: #4d3300;
-        }
-
-        body {
-            margin: 0;
-            background-color: var(--bg-indigo);
-            color: #fff;
-            font-family: 'Courier New', monospace;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            overflow: hidden;
-            transition: background-color 30s linear;
-        }
-
-        .gold-state { background-color: var(--bg-gold) !important; }
-
-        #boot-screen, #vessel { text-align: center; width: 100%; }
-        
-        .gold-btn {
-            background: transparent;
-            border: 2px solid #ffd700;
-            color: #ffd700;
-            padding: 20px 40px;
-            margin: 10px;
-            cursor: pointer;
-            font-family: inherit;
-            font-weight: bold;
-            font-size: 1.1rem;
-            transition: 0.3s;
-        }
-        .gold-btn:hover { background: #ffd700; color: #000; }
-
-        #anchor-logo {
-            max-width: 250px;
-            transition: opacity 2s ease;
-            filter: drop-shadow(0 0 15px var(--purple));
-        }
-
-        #timestamp { font-size: 1.5rem; transition: opacity 2s ease; }
-        
-        .faded { opacity: 0.3 !important; }
-
-        #complete-msg { font-size: 1.8rem; margin: 20px 0; color: #ffd700; }
-        
-        #re-enter { 
-            opacity: 0; 
-            visibility: hidden; 
-            transition: opacity 2s ease; 
-            color: #4af2a1; 
-            border-color: #4af2a1; 
-        }
-
-        .visible { opacity: 1 !important; visibility: visible !important; }
-        .hidden { display: none !important; }
-    </style>
+    <title>NOS-VESSEL | DJ GC77XR</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
-    <div id="boot-screen">
-        <button class="gold-btn" onclick="launch('nos')">ENTER NOS - VESSEL</button>
-        <button class="gold-btn" onclick="launch('sonic')">SONIC CALIBRATION</button>
+    <div id="overlay">
+        <div class="ui-box">
+            <h1>NOS-VESSEL</h1>
+            <p>System: DJ GC77XR Core</p>
+            <button id="startButton">BEGIN CALIBRATION</button>
+        </div>
     </div>
 
-    <div id="vessel" class="hidden">
-        <img id="anchor-logo" src="8419.png">
-        <p id="timestamp">SYNC: 00:00:30</p>
-        <h2 id="complete-msg" class="hidden"></h2>
-        <button id="re-enter" class="gold-btn" onclick="location.reload()">RESET - IGNITE - INTEGRATE</button>
+    <div id="status-display">
+        <p>> CALIBRATION SUCCESSFUL</p>
+        <p>> CORE STATE: CHROMATIC LOCK</p>
+        <p>> VAULT SECURED</p>
     </div>
 
-    <script>
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const masterGain = audioCtx.createGain();
-        masterGain.connect(audioCtx.destination);
-
-        let timeLeft = 30;
-        let currentMode = '';
-        let oscillator = null;
-
-        function startSyntheticAudio(mode) {
-            oscillator = audioCtx.createOscillator();
-            oscillator.type = (mode === 'nos') ? 'sine' : 'sawtooth';
-
-            const startFreq = (mode === 'nos') ? 60 : 110;
-            const endFreq = (mode === 'nos') ? 120 : 880;
-            
-            oscillator.frequency.setValueAtTime(startFreq, audioCtx.currentTime);
-            oscillator.frequency.exponentialRampToValueAtTime(endFreq, audioCtx.currentTime + 30);
-
-            oscillator.connect(masterGain);
-            oscillator.start();
-        }
-
-        function launch(mode) {
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
-
-            currentMode = mode;
-            document.getElementById('boot-screen').classList.add('hidden');
-            document.getElementById('vessel').classList.remove('hidden');
-            document.body.classList.add('gold-state');
-
-            startSyntheticAudio(mode);
-
-            const timer = setInterval(() => {
-                timeLeft--;
-                let s = timeLeft;
-                document.getElementById('timestamp').innerText = `SYNC: 00:00:${s < 10 ? '0' + s : s}`;
-
-                if (timeLeft === 2) {
-                    masterGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 2);
-                }
-
-                if (timeLeft <= 0) {
-                    clearInterval(timer);
-                    if (oscillator) oscillator.stop();
-                    executeCompletion();
-                }
-            }, 1000);
-        }
-
-        function executeCompletion() {
-            document.getElementById('anchor-logo').classList.add('faded');
-            document.getElementById('timestamp').classList.add('faded');
-
-            const msg = document.getElementById('complete-msg');
-            msg.innerText = (currentMode === 'nos') 
-                ? "NOS VESSEL CALIBRATION COMPLETE" 
-                : "DJ GC77XR Sonic Calibration Completed.";
-            msg.classList.remove('hidden');
-
-            setTimeout(() => {
-                document.getElementById('re-enter').classList.add('visible');
-            }, 1500);
-        }
-    </script>
+    <canvas id="vesselCanvas"></canvas>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
