@@ -1,20 +1,79 @@
-body, html { margin: 0; padding: 0; overflow: hidden; background: #000; font-family: monospace; }
-canvas { display: block; width: 100vw; height: 100vh; }
+const BPM = 118;
+const BEAT_INTERVAL = 60 / BPM;
+const SESSION_LIMIT = 11 * 60; 
+let audioCtx, timerStart, nextBeatTime;
+let appState = 'LOBBY';
 
-#overlay, #finalState {
-    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-    display: flex; justify-content: center; align-items: center;
-    background: rgba(0,0,0,0.8); z-index: 10;
+// VISUALS
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('vesselCanvas'), antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+
+const createArc = (radius) => {
+    const geo = new THREE.TorusGeometry(radius, 0.01, 2, 100, Math.PI * 1.6);
+    const mat = new THREE.MeshBasicMaterial({ color: 0x00ffff, transparent: true, opacity: 0.8 });
+    return new THREE.Mesh(geo, mat);
+};
+
+const arc1 = createArc(1.2);
+const arc2 = createArc(1.4);
+arc2.rotation.z = Math.PI;
+scene.add(arc1, arc2);
+camera.position.z = 3;
+
+// AUDIO
+function playHeartbeat(time) {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.frequency.value = 50; 
+    gain.gain.setValueAtTime(0.6, time);
+    gain.gain.exponentialRampToValueAtTime(0.001, time + 0.1);
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.start(time); osc.stop(time + 0.1);
 }
 
-button {
-    background: #000; color: #00ffff; border: 2px solid #00ffff;
-    padding: 20px 40px; font-size: 1.1rem; cursor: pointer;
-    box-shadow: 0 0 15px #00ffff; text-transform: uppercase;
-    letter-spacing: 2px;
+function playGong() {
+    [110, 144, 210].forEach(f => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.frequency.value = f;
+        gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 6);
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.start(); osc.stop(audioCtx.currentTime + 6);
+    });
 }
 
-#resetButton {
-    width: 300px; height: 300px; border: 4px solid #fff;
-    color: #fff; box-shadow: 0 0 30px #fff; font-weight: bold;
+function animate() {
+    requestAnimationFrame(animate);
+    if (appState === 'ACTIVE') {
+        arc1.rotation.z += 0.01;
+        arc2.rotation.z -= 0.005;
+
+        while (nextBeatTime < audioCtx.currentTime + 0.1) {
+            playHeartbeat(nextBeatTime);
+            nextBeatTime += BEAT_INTERVAL;
+        }
+
+        if ((Date.now() - timerStart) / 1000 >= SESSION_LIMIT) {
+            appState = 'END';
+            playGong();
+            arc1.material.color.set(0xffffff);
+            arc2.material.color.set(0xffffff);
+            document.getElementById('finalState').style.display = 'flex';
+        }
+    }
+    renderer.render(scene, camera);
 }
+
+document.getElementById('startButton').addEventListener('click', () => {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    audioCtx.resume();
+    nextBeatTime = audioCtx.currentTime;
+    timerStart = Date.now();
+    appState = 'ACTIVE';
+    document.getElementById('overlay').style.display = 'none';
+});
+
+animate();
