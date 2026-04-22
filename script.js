@@ -1,23 +1,23 @@
-// --- CONFIG & STATE ---
+// --- CONFIGURATION ---
 const BPM = 118;
 const BEAT_INTERVAL = 60 / BPM;
 const SESSION_LIMIT = 11 * 60; 
 let audioCtx, timerStart, nextBeatTime;
 let appState = 'LOBBY';
 
-// --- VISUAL ENGINE ---
+// --- VISUAL ENGINE (Three.js) ---
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
 const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('vesselCanvas'), antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 
-// 1. RESTORED: THE CENTRAL CIRCLE (The Vessel)
-const coreGeo = new THREE.CircleGeometry(0.3, 64);
-const coreMat = new THREE.MeshBasicMaterial({ color: 0x00ffff, transparent: true, opacity: 0.8 });
+// 1. RESTORED: THE CENTRAL VESSEL (Core Pulse)
+const coreGeo = new THREE.CircleGeometry(0.25, 64);
+const coreMat = new THREE.MeshBasicMaterial({ color: 0x00ffff, transparent: true, opacity: 0.9 });
 const core = new THREE.Mesh(coreGeo, coreMat);
 scene.add(core);
 
-// 2. THE ARCS
+// 2. THE ORBITAL ARCS
 const createArc = (radius, op, speed) => {
     const geo = new THREE.TorusGeometry(radius, 0.01, 2, 100, Math.PI * 1.5);
     const mat = new THREE.MeshBasicMaterial({ color: 0x00ffff, transparent: true, opacity: op });
@@ -25,14 +25,15 @@ const createArc = (radius, op, speed) => {
     scene.add(mesh);
     return { mesh, speed };
 };
-const arcs = [createArc(1.0, 0.6, 0.015), createArc(1.3, 0.3, -0.008)];
+const arcs = [createArc(1.1, 0.7, 0.012), createArc(1.4, 0.3, -0.006)];
 camera.position.z = 3;
 
-// --- AUDIO REPAIR (Mobile Optimized) ---
+// --- AUDIO ENGINE (iPhone Fix) ---
 function initAudio() {
     if (!audioCtx) {
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     }
+    // Critical for iOS: Resume context on user gesture
     if (audioCtx.state === 'suspended') {
         audioCtx.resume();
     }
@@ -42,20 +43,21 @@ function playHeartbeat(time) {
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
     osc.type = 'sine';
-    osc.frequency.setValueAtTime(55, time); // Sub-bass frequency
-    gain.gain.setValueAtTime(0.8, time);
-    gain.gain.exponentialRampToValueAtTime(0.001, time + 0.15);
+    osc.frequency.setValueAtTime(55, time); // 55Hz Sub-Bass
+    gain.gain.setValueAtTime(0.7, time);
+    gain.gain.exponentialRampToValueAtTime(0.001, time + 0.12);
     osc.connect(gain); gain.connect(audioCtx.destination);
-    osc.start(time); osc.stop(time + 0.15);
+    osc.start(time); osc.stop(time + 0.12);
 }
 
-// --- MASTER LOOP ---
+// --- ANIMATION LOOP ---
 function animate() {
     requestAnimationFrame(animate);
     if (appState === 'ACTIVE') {
-        // Visual Rotation
+        // Visuals
         arcs.forEach(a => a.mesh.rotation.z += a.speed);
-        core.scale.set(1 + Math.sin(Date.now() * 0.005) * 0.05, 1 + Math.sin(Date.now() * 0.005) * 0.05, 1);
+        const pulse = 1 + Math.sin(Date.now() * 0.004) * 0.08;
+        core.scale.set(pulse, pulse, 1);
 
         // Audio Timing
         while (nextBeatTime < audioCtx.currentTime + 0.1) {
@@ -63,7 +65,7 @@ function animate() {
             nextBeatTime += BEAT_INTERVAL;
         }
 
-        // HUD & Timer
+        // HUD Progress
         const elapsed = (Date.now() - timerStart) / 1000;
         const remaining = Math.max(0, SESSION_LIMIT - elapsed);
         document.getElementById('timer').innerText = `${Math.floor(remaining / 60)}:${Math.floor(remaining % 60).toString().padStart(2, '0')}`;
@@ -79,17 +81,22 @@ function animate() {
     renderer.render(scene, camera);
 }
 
-// --- START TRIGGER ---
+// --- INITIALIZATION ---
 document.getElementById('startButton').addEventListener('click', () => {
-    initAudio(); // Force audio unlock
+    initAudio(); // Wakes up audio engine for iPhone
+    
     nextBeatTime = audioCtx.currentTime;
     timerStart = Date.now();
     appState = 'ACTIVE';
     
-    // UI Transitions
-    document.getElementById('main-ui').classList.add('is-active');
-    document.getElementById('overlay').style.display = 'none';
-    document.getElementById('hud').style.display = 'block';
+    // Transitions
+    document.getElementById('main-ui').classList.add('boot-flicker');
+    setTimeout(() => {
+        document.getElementById('main-ui').classList.remove('boot-flicker');
+        document.body.classList.add('is-active');
+        document.getElementById('overlay').style.display = 'none';
+        document.getElementById('hud').style.display = 'block';
+    }, 400);
 });
 
 animate();
